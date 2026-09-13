@@ -54,8 +54,6 @@ function renderBookings(filter = '') {
       <td>${escHtml(b.phone)}</td>
       <td>${formatDate(b.tripDate)}</td>
       <td>${formatTime(b.tripTime)}</td>
-      <td>${escHtml(b.pickup)}</td>
-      <td>${escHtml(b.dropoff)}</td>
       <td>
         <select class="status-select" onchange="changeStatus('${b.id}', this.value)">
           ${['Confirmed','Pending','Cancelled'].map(s =>
@@ -130,7 +128,7 @@ function confirmDelete() {
 /* ---------- Clear all ---------- */
 function clearAllBookings() {
   if (!confirm('Are you sure you want to delete ALL bookings? This cannot be undone.')) return;
-  localStorage.removeItem('drivebook_bookings');
+  localStorage.removeItem('totahda_bookings');
   renderBookings();
 }
 

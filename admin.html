@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Dashboard – DriveBook</title>
+  <title>Admin Dashboard – TotahDa</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <div class="logo">🚗 DriveBook</div>
+      <div class="logo">🚗 TotahDa</div>
       <nav>
         <a href="index.html" class="nav-link">Book a Driver</a>
         <a href="admin.html" class="nav-link active">Admin Dashboard</a>
@@ -17,7 +17,22 @@
     </div>
   </header>
 
-  <main class="main-content">
+  <!-- Admin Login Screen -->
+  <div id="adminLoginScreen" class="modal-overlay" style="background:#f0f2f5;">
+    <div class="card" style="max-width:380px;width:100%;padding:40px 36px;text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:12px;">🔐</div>
+      <h2 style="margin-bottom:6px;">Admin Login</h2>
+      <p style="color:#57606a;font-size:0.9rem;margin-bottom:24px;">Enter your admin PIN to continue.</p>
+      <div class="form-group" style="text-align:left;">
+        <label for="adminPin">Admin PIN</label>
+        <input type="password" id="adminPin" placeholder="Enter PIN" style="width:100%" />
+        <span class="field-error" id="err-adminPin"></span>
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-top:16px;" onclick="adminLogin()">Login</button>
+    </div>
+  </div>
+
+  <main class="main-content" id="adminMain" style="display:none;">
     <div class="card admin-card">
       <div class="admin-header">
         <div>
@@ -49,8 +64,6 @@
               <th>Phone</th>
               <th>Date</th>
               <th>Time</th>
-              <th>Pickup</th>
-              <th>Drop-off</th>
               <th>Status</th>
               <th>Booked At</th>
               <th>Action</th>
@@ -82,5 +95,28 @@
 
   <script src="app.js"></script>
   <script src="admin.js"></script>
+  <script>
+    // Show login screen on load; hide if already authenticated this session
+    if (sessionStorage.getItem('totahda_admin') === '1') {
+      document.getElementById('adminLoginScreen').style.display = 'none';
+      document.getElementById('adminMain').style.display = '';
+    }
+    function adminLogin() {
+      const pin = document.getElementById('adminPin').value.trim();
+      const err = document.getElementById('err-adminPin');
+      if (pin === '100') {
+        sessionStorage.setItem('totahda_admin', '1');
+        document.getElementById('adminLoginScreen').style.display = 'none';
+        document.getElementById('adminMain').style.display = '';
+        renderBookings();
+      } else {
+        document.getElementById('adminPin').classList.add('invalid');
+        err.textContent = 'Incorrect PIN. Please try again.';
+      }
+    }
+    document.getElementById('adminPin').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') adminLogin();
+    });
+  </script>
 </body>
 </html>

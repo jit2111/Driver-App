@@ -3,7 +3,7 @@
    Used by both index.html and admin.html
 =========================== */
 
-const STORAGE_KEY = 'drivebook_bookings';
+const STORAGE_KEY = 'totahda_bookings';
 
 /* ---------- Storage helpers ---------- */
 function getBookings() {
@@ -55,8 +55,6 @@ if (bookingForm) {
       phone:    document.getElementById('phone').value.trim(),
       tripDate: document.getElementById('tripDate').value,
       tripTime: document.getElementById('tripTime').value,
-      pickup:   document.getElementById('pickup').value.trim(),
-      dropoff:  document.getElementById('dropoff').value.trim(),
     };
 
     const saved = addBooking(booking);
@@ -73,8 +71,6 @@ function validateForm() {
     { id: 'phone',     msg: 'Please enter a phone number.' },
     { id: 'tripDate',  msg: 'Please select a date.' },
     { id: 'tripTime',  msg: 'Please select a time.' },
-    { id: 'pickup',    msg: 'Please enter a pickup location.' },
-    { id: 'dropoff',   msg: 'Please enter a drop-off location.' },
   ];
 
   fields.forEach(({ id, msg }) => {
@@ -109,8 +105,7 @@ function showSuccessModal(booking) {
   const time  = formatTime(booking.tripTime);
   const date  = formatDate(booking.tripDate);
   msg.textContent =
-    `Hi ${booking.fullName}, your booking (${booking.id}) is confirmed for ${date} at ${time}. ` +
-    `Pickup: ${booking.pickup}.`;
+    `Hi ${booking.fullName}, your booking (${booking.id}) is confirmed for ${date} at ${time}.`;
   modal.classList.remove('hidden');
 }
 
