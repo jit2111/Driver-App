@@ -56,9 +56,8 @@ html {
   height: 42px;
   object-fit: contain;
   border-radius: 50%;
-  background: #fff;
   padding: 2px;
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+  mix-blend-mode: multiply;
 }
 
 nav {
@@ -184,7 +183,8 @@ nav {
   width: 100%;
   max-width: 380px;
   object-fit: contain;
-  filter: drop-shadow(0 16px 40px rgba(0,0,0,0.4));
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 16px 40px rgba(0,0,0,0.3));
   animation: floatUp 3.5s ease-in-out infinite;
 }
 
