@@ -4,49 +4,55 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Dashboard – TotahDa</title>
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
+
+  <!-- ===== HEADER ===== -->
   <header class="site-header">
     <div class="header-inner">
-      <div class="logo">🚗 TotahDa</div>
+      <div class="logo">
+        <img src="images/driver.png" alt="TotahDa" class="logo-img" />
+        <span>TotahDa</span>
+      </div>
       <nav>
         <a href="index.html" class="nav-link">Book a Driver</a>
-        <a href="admin.html" class="nav-link active">Admin Dashboard</a>
+        <a href="admin.html" class="nav-link active">Admin</a>
       </nav>
     </div>
   </header>
 
-  <!-- Admin Login Screen -->
-  <div id="adminLoginScreen" class="modal-overlay" style="background:#f0f2f5;">
-    <div class="card" style="max-width:380px;width:100%;padding:40px 36px;text-align:center;">
-      <div style="font-size:2.5rem;margin-bottom:12px;">🔐</div>
-      <h2 style="margin-bottom:6px;">Admin Login</h2>
-      <p style="color:#57606a;font-size:0.9rem;margin-bottom:24px;">Enter your admin PIN to continue.</p>
-      <div class="form-group" style="text-align:left;">
+  <!-- ===== ADMIN LOGIN SCREEN ===== -->
+  <div id="adminLoginScreen" class="login-screen">
+    <div class="login-card">
+      <img src="images/driver.png" alt="TotahDa Driver" class="login-driver-img" />
+      <h2 class="login-title">Admin Portal</h2>
+      <p class="login-sub">Enter your PIN to access the dashboard</p>
+      <div class="form-group">
         <label for="adminPin">Admin PIN</label>
-        <input type="password" id="adminPin" placeholder="Enter PIN" style="width:100%" />
+        <input type="password" id="adminPin" placeholder="••••" class="pin-input" />
         <span class="field-error" id="err-adminPin"></span>
       </div>
-      <button class="btn btn-primary btn-full" style="margin-top:16px;" onclick="adminLogin()">Login</button>
+      <button class="btn btn-primary btn-full" style="margin-top:20px;" onclick="adminLogin()">
+        🔓 Login to Dashboard
+      </button>
     </div>
   </div>
 
+  <!-- ===== ADMIN MAIN ===== -->
   <main class="main-content" id="adminMain" style="display:none;">
     <div class="card admin-card">
       <div class="admin-header">
-        <div>
-          <h1 class="card-title">All Bookings</h1>
-          <p class="card-subtitle" id="bookingCount">Loading…</p>
+        <div class="admin-title-row">
+          <img src="images/driver.png" alt="" class="admin-avatar" />
+          <div>
+            <h1 class="card-title">All Bookings</h1>
+            <p class="card-subtitle" id="bookingCount">Loading…</p>
+          </div>
         </div>
         <div class="admin-actions">
-          <input
-            type="text"
-            id="searchInput"
-            class="search-input"
-            placeholder="Search by name or phone…"
-            oninput="filterBookings()"
-          />
+          <input type="text" id="searchInput" class="search-input"
+            placeholder="Search by name or phone…" oninput="filterBookings()" />
           <button class="btn btn-danger" onclick="clearAllBookings()">Clear All</button>
         </div>
       </div>
@@ -70,12 +76,11 @@
               <th>Action</th>
             </tr>
           </thead>
-          <tbody id="bookingsBody">
-          </tbody>
+          <tbody id="bookingsBody"></tbody>
         </table>
         <div id="emptyState" class="empty-state hidden">
-          <div class="empty-icon">📋</div>
-          <p>No bookings found.</p>
+          <img src="images/driver.png" alt="" class="empty-driver-img" />
+          <p>No bookings yet. Waiting for riders!</p>
         </div>
       </div>
     </div>
@@ -97,10 +102,9 @@
     </div>
   </div>
 
-  <script src="app.js?v=4"></script>
-  <script src="admin.js?v=4"></script>
+  <script src="app.js?v=5"></script>
+  <script src="admin.js?v=5"></script>
   <script>
-    // Show login screen on load; hide if already authenticated this session
     if (sessionStorage.getItem('totahda_admin') === '1') {
       document.getElementById('adminLoginScreen').style.display = 'none';
       document.getElementById('adminMain').style.display = '';

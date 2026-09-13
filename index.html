@@ -4,91 +4,114 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TotahDa – Book a Driver</title>
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
+
+  <!-- ===== HEADER ===== -->
   <header class="site-header">
     <div class="header-inner">
-      <div class="logo">🚗 TotahDa</div>
+      <div class="logo">
+        <img src="images/driver.png" alt="TotahDa" class="logo-img" />
+        <span>TotahDa</span>
+      </div>
       <nav>
         <a href="index.html" class="nav-link active">Book a Driver</a>
-        <a href="admin.html" class="nav-link">Admin Dashboard</a>
+        <a href="admin.html" class="nav-link">Admin</a>
       </nav>
     </div>
   </header>
 
-  <main class="main-content">
-    <div class="card booking-card">
-      <h1 class="card-title">Book a Driver</h1>
-      <p class="card-subtitle">Fill in your details and we'll assign a driver for you.</p>
-
-      <form id="bookingForm" class="booking-form" novalidate>
-
-        <div class="form-group">
-          <label for="fullName">Full Name</label>
-          <input
-            type="text"
-            id="fullName"
-            name="fullName"
-            placeholder="e.g. Jane Doe"
-            autocomplete="name"
-            required
-          />
-          <span class="field-error" id="err-fullName"></span>
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <span class="hero-badge">🚗 Fast &amp; Reliable</span>
+        <h1 class="hero-title">Your Personal Driver,<br/>On Demand</h1>
+        <p class="hero-sub">Book a professional driver in seconds. Safe, punctual, and always smiling.</p>
+        <div class="hero-features">
+          <div class="hf"><span class="hf-icon">✅</span> Verified Drivers</div>
+          <div class="hf"><span class="hf-icon">⚡</span> Instant Booking</div>
+          <div class="hf"><span class="hf-icon">📱</span> SMS Confirmation</div>
         </div>
-
-        <div class="form-group">
-          <label for="phone">Phone Number</label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            placeholder="e.g. +1 555 000 1234"
-            autocomplete="tel"
-            required
-          />
-          <span class="field-error" id="err-phone"></span>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="tripDate">Date</label>
-            <input
-              type="date"
-              id="tripDate"
-              name="tripDate"
-              required
-            />
-            <span class="field-error" id="err-tripDate"></span>
-          </div>
-
-          <div class="form-group">
-            <label for="tripTime">Time</label>
-            <input
-              type="time"
-              id="tripTime"
-              name="tripTime"
-              required
-            />
-            <span class="field-error" id="err-tripTime"></span>
-          </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-full">Confirm Booking</button>
-      </form>
+      </div>
+      <div class="hero-img-wrap">
+        <img src="images/driver.png" alt="Professional Driver" class="hero-driver-img" />
+      </div>
     </div>
-  </main>
+  </section>
+
+  <!-- ===== BOOKING FORM ===== -->
+  <section class="booking-section" id="bookNow">
+    <div class="booking-wrapper">
+
+      <div class="booking-left">
+        <h2 class="section-title">Book Your Ride</h2>
+        <p class="section-sub">Fill in your details below and we'll get your driver ready.</p>
+        <img src="images/driver.png" alt="Driver" class="booking-driver-img" />
+        <ul class="perks-list">
+          <li>🕐 Available 24/7</li>
+          <li>🛡️ Safety guaranteed</li>
+          <li>💬 SMS updates</li>
+          <li>⭐ Top-rated drivers</li>
+        </ul>
+      </div>
+
+      <div class="form-card">
+        <form id="bookingForm" class="booking-form" novalidate>
+
+          <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <input type="text" id="fullName" name="fullName"
+              placeholder="e.g. Jane Doe" autocomplete="name" required />
+            <span class="field-error" id="err-fullName"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone"
+              placeholder="e.g. +1 555 000 1234" autocomplete="tel" required />
+            <span class="field-error" id="err-phone"></span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="tripDate">Date</label>
+              <input type="date" id="tripDate" name="tripDate" required />
+              <span class="field-error" id="err-tripDate"></span>
+            </div>
+            <div class="form-group">
+              <label for="tripTime">Time</label>
+              <input type="time" id="tripTime" name="tripTime" required />
+              <span class="field-error" id="err-tripTime"></span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full">
+            🚗 Confirm Booking
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <img src="images/driver.png" alt="TotahDa" class="footer-img" />
+    <p>&copy; 2025 TotahDa. All rights reserved.</p>
+  </footer>
 
   <!-- Success Modal -->
   <div id="successModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
-      <div class="modal-icon">✅</div>
-      <h2>Booking Confirmed!</h2>
+      <img src="images/driver.png" alt="Driver" class="modal-driver-img" />
+      <h2>Booking Confirmed! 🎉</h2>
       <p id="modalMessage"></p>
-      <button class="btn btn-primary" onclick="closeModal()">Book Another</button>
+      <button class="btn btn-primary" onclick="closeModal()">Book Another Ride</button>
     </div>
   </div>
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
