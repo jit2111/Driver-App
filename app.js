@@ -76,6 +76,7 @@ function validateForm() {
   fields.forEach(({ id, msg }) => {
     const input = document.getElementById(id);
     const err   = document.getElementById('err-' + id);
+    if (!input || !err) return;
     if (!input.value.trim()) {
       input.classList.add('invalid');
       err.textContent = msg;
