@@ -49,6 +49,11 @@ html {
   font-weight: 800;
   letter-spacing: -0.3px;
   color: #fff;
+  text-decoration: none;
+}
+
+.logo:hover {
+  opacity: 0.88;
 }
 
 .logo-img {
@@ -56,8 +61,9 @@ html {
   height: 42px;
   object-fit: contain;
   border-radius: 50%;
+  background: #fff;
   padding: 2px;
-  mix-blend-mode: multiply;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
 }
 
 nav {
@@ -173,18 +179,21 @@ nav {
   font-size: 1rem;
 }
 
+/* filter on the wrapper so the img itself can use mix-blend-mode
+   (filter on the same element creates a stacking context that breaks blending) */
 .hero-img-wrap {
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  filter: drop-shadow(0 16px 40px rgba(0,0,0,0.3));
 }
 
 .hero-driver-img {
   width: 100%;
   max-width: 380px;
   object-fit: contain;
+  /* multiply makes white PNG pixels transparent against the dark hero gradient */
   mix-blend-mode: multiply;
-  filter: drop-shadow(0 16px 40px rgba(0,0,0,0.3));
   animation: floatUp 3.5s ease-in-out infinite;
 }
 
@@ -406,6 +415,19 @@ input.invalid {
   margin-bottom: 8px;
   opacity: 0.9;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.footer-link {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
 }
 
 /* ===========================
