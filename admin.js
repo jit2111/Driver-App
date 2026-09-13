@@ -38,8 +38,16 @@ function renderBookings(filter = '') {
   emptyState.classList.add('hidden');
   document.getElementById('bookingsTable').style.display = '';
 
+  // Build a set of date+time keys that appear more than once across ALL bookings
+  const slotCounts = {};
+  all.forEach(b => {
+    const key = `${b.tripDate}|${b.tripTime}`;
+    slotCounts[key] = (slotCounts[key] || 0) + 1;
+  });
+
   list.forEach((b, i) => {
     const isConfirmed = b.status === 'Confirmed';
+    const isClash = slotCounts[`${b.tripDate}|${b.tripTime}`] > 1;
 
     // Driver cell — dropdown only when Confirmed
     const driverCell = isConfirmed
@@ -56,11 +64,12 @@ function renderBookings(filter = '') {
       : `<span style="color:#57606a;font-size:0.8rem">${b.driver || '—'}</span>`;
 
     const tr = document.createElement('tr');
+    if (isClash) tr.classList.add('row-clash');
     tr.innerHTML = `
       <td style="color:#57606a;font-size:0.8rem">${i + 1}</td>
       <td><strong>${escHtml(b.fullName)}</strong></td>
       <td>${escHtml(b.phone)}</td>
-      <td>${formatDate(b.tripDate)}</td>
+      <td>${formatDate(b.tripDate)} ${isClash ? '<span class="clash-badge">⚠ Clash</span>' : ''}</td>
       <td>${formatTime(b.tripTime)}</td>
       <td>
         <select class="status-select" onchange="changeStatus('${b.id}', this.value)">
