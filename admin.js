@@ -2,6 +2,8 @@
    admin.js — Admin dashboard logic
 =========================== */
 
+const DRIVERS = ['Pradip', 'Swapan', 'Ujjal', 'Totah', 'Samir'];
+
 let pendingDeleteId = null;
 
 /* ---------- Render ---------- */
@@ -20,15 +22,11 @@ function renderBookings(filter = '') {
   const emptyState = document.getElementById('emptyState');
   const countEl    = document.getElementById('bookingCount');
 
-  // Update count text
   countEl.textContent = all.length === 0
     ? 'No bookings yet.'
     : `${all.length} booking${all.length !== 1 ? 's' : ''} total`;
 
-  // Render stats
   renderStats(all);
-
-  // Clear table
   tbody.innerHTML = '';
 
   if (list.length === 0) {
@@ -41,11 +39,21 @@ function renderBookings(filter = '') {
   document.getElementById('bookingsTable').style.display = '';
 
   list.forEach((b, i) => {
-    const statusClass = {
-      'Confirmed':  'badge-confirmed',
-      'Pending':    'badge-pending',
-      'Cancelled':  'badge-cancelled',
-    }[b.status] || 'badge-pending';
+    const isConfirmed = b.status === 'Confirmed';
+
+    // Driver cell — dropdown only when Confirmed
+    const driverCell = isConfirmed
+      ? `<select class="status-select driver-select" onchange="assignDriver('${b.id}', this.value)">
+           <option value="">— Assign Driver —</option>
+           ${DRIVERS.map(d =>
+               `<option value="${d}" ${b.driver === d ? 'selected' : ''}>${d}</option>`
+             ).join('')}
+         </select>
+         ${b.driver
+           ? `<button class="btn btn-sms btn-sm" onclick="sendSMS('${b.id}')">📱 SMS</button>`
+           : ''
+         }`
+      : `<span style="color:#57606a;font-size:0.8rem">${b.driver || '—'}</span>`;
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -61,6 +69,7 @@ function renderBookings(filter = '') {
             ).join('')}
         </select>
       </td>
+      <td class="driver-cell">${driverCell}</td>
       <td style="color:#57606a;font-size:0.8rem;white-space:nowrap">${formatDateTime(b.bookedAt)}</td>
       <td>
         <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${b.id}')">Delete</button>
@@ -73,10 +82,10 @@ function renderBookings(filter = '') {
 /* ---------- Stats ---------- */
 function renderStats(bookings) {
   const statsBar = document.getElementById('statsBar');
-  const total      = bookings.length;
-  const confirmed  = bookings.filter(b => b.status === 'Confirmed').length;
-  const pending    = bookings.filter(b => b.status === 'Pending').length;
-  const cancelled  = bookings.filter(b => b.status === 'Cancelled').length;
+  const total     = bookings.length;
+  const confirmed = bookings.filter(b => b.status === 'Confirmed').length;
+  const pending   = bookings.filter(b => b.status === 'Pending').length;
+  const cancelled = bookings.filter(b => b.status === 'Cancelled').length;
 
   const pills = [
     { label: 'Total Bookings', value: total },
@@ -103,6 +112,40 @@ function filterBookings() {
 function changeStatus(id, status) {
   updateBookingStatus(id, status);
   renderBookings(document.getElementById('searchInput').value);
+}
+
+/* ---------- Assign Driver ---------- */
+function assignDriver(id, driver) {
+  const bookings = getBookings().map(b => b.id === id ? { ...b, driver } : b);
+  saveBookings(bookings);
+  renderBookings(document.getElementById('searchInput').value);
+}
+
+/* ---------- Send SMS ---------- */
+function sendSMS(id) {
+  const booking = getBookings().find(b => b.id === id);
+  if (!booking || !booking.driver) return;
+
+  const date    = formatDate(booking.tripDate);
+  const time    = formatTime(booking.tripTime);
+  const message =
+    `Hi ${booking.fullName}, your TotahDa driver has been confirmed! ` +
+    `Driver: ${booking.driver}. Date: ${date} at ${time}. ` +
+    `Booking ID: ${booking.id}. Thank you for choosing TotahDa!`;
+
+  // Open native SMS app with pre-filled message
+  const phone = booking.phone.replace(/\s+/g, '');
+  window.open(`sms:${phone}?body=${encodeURIComponent(message)}`, '_self');
+
+  showToast(`📱 SMS opened for ${booking.fullName} (Driver: ${booking.driver})`);
+}
+
+/* ---------- Toast ---------- */
+function showToast(msg) {
+  const toast = document.getElementById('smsToast');
+  toast.textContent = msg;
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 4000);
 }
 
 /* ---------- Delete ---------- */

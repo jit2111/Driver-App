@@ -444,6 +444,58 @@ input.invalid {
 }
 
 /* ===========================
+   Driver cell
+=========================== */
+.driver-cell {
+  white-space: nowrap;
+}
+
+.driver-select {
+  border-color: #7c5cd8;
+  color: #4b2ea0;
+  max-width: 160px;
+}
+
+.driver-select:focus {
+  box-shadow: 0 0 0 3px rgba(124,92,216,0.15);
+}
+
+/* SMS button */
+.btn-sms {
+  background: #16a34a;
+  color: #fff;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.btn-sms:hover {
+  background: #15803d;
+}
+
+/* ===========================
+   Toast notification
+=========================== */
+.sms-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2328;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  z-index: 300;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+
+.sms-toast.hidden {
+  display: none;
+}
+
+/* ===========================
    Responsive
 =========================== */
 @media (max-width: 600px) {
