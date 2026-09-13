@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard – DriveBook</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">🚗 DriveBook</div>
+      <nav>
+        <a href="index.html" class="nav-link">Book a Driver</a>
+        <a href="admin.html" class="nav-link active">Admin Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="card admin-card">
+      <div class="admin-header">
+        <div>
+          <h1 class="card-title">All Bookings</h1>
+          <p class="card-subtitle" id="bookingCount">Loading…</p>
+        </div>
+        <div class="admin-actions">
+          <input
+            type="text"
+            id="searchInput"
+            class="search-input"
+            placeholder="Search by name or phone…"
+            oninput="filterBookings()"
+          />
+          <button class="btn btn-danger" onclick="clearAllBookings()">Clear All</button>
+        </div>
+      </div>
+
+      <!-- Stats bar -->
+      <div class="stats-bar" id="statsBar"></div>
+
+      <!-- Table -->
+      <div class="table-wrapper">
+        <table class="bookings-table" id="bookingsTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Pickup</th>
+              <th>Drop-off</th>
+              <th>Status</th>
+              <th>Booked At</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="bookingsBody">
+          </tbody>
+        </table>
+        <div id="emptyState" class="empty-state hidden">
+          <div class="empty-icon">📋</div>
+          <p>No bookings found.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Confirm delete modal -->
+  <div id="deleteModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-icon">⚠️</div>
+      <h2>Delete Booking?</h2>
+      <p>This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Driver Booking</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">🚗 DriveBook</div>
+      <nav>
+        <a href="index.html" class="nav-link active">Book a Driver</a>
+        <a href="admin.html" class="nav-link">Admin Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="card booking-card">
+      <h1 class="card-title">Book a Driver</h1>
+      <p class="card-subtitle">Fill in your details and we'll assign a driver for you.</p>
+
+      <form id="bookingForm" class="booking-form" novalidate>
+
+        <div class="form-group">
+          <label for="fullName">Full Name</label>
+          <input
+            type="text"
+            id="fullName"
+            name="fullName"
+            placeholder="e.g. Jane Doe"
+            autocomplete="name"
+            required
+          />
+          <span class="field-error" id="err-fullName"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            placeholder="e.g. +1 555 000 1234"
+            autocomplete="tel"
+            required
+          />
+          <span class="field-error" id="err-phone"></span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tripDate">Date</label>
+            <input
+              type="date"
+              id="tripDate"
+              name="tripDate"
+              required
+            />
+            <span class="field-error" id="err-tripDate"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="tripTime">Time</label>
+            <input
+              type="time"
+              id="tripTime"
+              name="tripTime"
+              required
+            />
+            <span class="field-error" id="err-tripTime"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="pickup">Pickup Location</label>
+          <input
+            type="text"
+            id="pickup"
+            name="pickup"
+            placeholder="e.g. 123 Main Street"
+            required
+          />
+          <span class="field-error" id="err-pickup"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="dropoff">Drop-off Location</label>
+          <input
+            type="text"
+            id="dropoff"
+            name="dropoff"
+            placeholder="e.g. Downtown Airport"
+            required
+          />
+          <span class="field-error" id="err-dropoff"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">Confirm Booking</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-icon">✅</div>
+      <h2>Booking Confirmed!</h2>
+      <p id="modalMessage"></p>
+      <button class="btn btn-primary" onclick="closeModal()">Book Another</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
