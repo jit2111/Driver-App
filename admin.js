@@ -7,17 +7,20 @@ const DEFAULT_DRIVERS  = ['Pradip', 'Swapan', 'Ujjal', 'Totah', 'Samir'];
 
 /* ─────────────────────────────────────
    Driver storage  (API-first, localStorage fallback)
+   Drivers are objects: { name, phone }
 ───────────────────────────────────── */
 
 async function getDrivers() {
   if (await isApiAvailable()) {
     const r = await fetch('/api/drivers');
-    if (r.ok) return r.json();
+    if (r.ok) return r.json();   // [{name, phone}, …]
   }
   try {
     const stored = JSON.parse(localStorage.getItem(DRIVERS_KEY));
-    return Array.isArray(stored) && stored.length ? stored : [...DEFAULT_DRIVERS];
-  } catch { return [...DEFAULT_DRIVERS]; }
+    const arr    = Array.isArray(stored) && stored.length ? stored : [...DEFAULT_DRIVERS];
+    /* normalise legacy plain-string entries */
+    return arr.map(d => typeof d === 'string' ? { name: d, phone: '' } : d);
+  } catch { return DEFAULT_DRIVERS.map(name => ({ name, phone: '' })); }
 }
 
 async function _apiSaveDrivers(method, path, body) {
@@ -41,8 +44,12 @@ async function renderDriverChips() {
   const drivers = await getDrivers();
   chips.innerHTML = drivers.map((d, i) => `
     <div class="driver-chip">
-      <span class="chip-name">${escHtml(d)}</span>
-      <button class="chip-btn chip-edit" title="Rename" onclick="openEditDriverModal(${i})">✏️</button>
+      <span class="chip-name">${escHtml(d.name)}</span>
+      ${d.phone
+        ? `<a class="chip-btn chip-call" href="tel:${escHtml(d.phone)}" title="Call ${escHtml(d.name)}">📞</a>`
+        : `<button class="chip-btn chip-call chip-call-empty" title="No phone — click Edit to add" onclick="openEditDriverModal(${i})">📞</button>`
+      }
+      <button class="chip-btn chip-edit" title="Edit" onclick="openEditDriverModal(${i})">✏️</button>
       <button class="chip-btn chip-del"  title="Remove" onclick="removeDriver(${i})">✕</button>
     </div>
   `).join('');
@@ -55,9 +62,10 @@ let _editingDriverIndex = null;
 
 function openAddDriverModal() {
   _editingDriverIndex = null;
-  document.getElementById('driverModalTitle').textContent = 'Add Driver';
-  document.getElementById('driverNameInput').value        = '';
-  document.getElementById('err-driverName').textContent   = '';
+  document.getElementById('driverModalTitle').textContent  = 'Add Driver';
+  document.getElementById('driverNameInput').value         = '';
+  document.getElementById('driverPhoneInput').value        = '';
+  document.getElementById('err-driverName').textContent    = '';
   document.getElementById('driverModal').classList.remove('hidden');
   setTimeout(() => document.getElementById('driverNameInput').focus(), 50);
 }
@@ -65,9 +73,11 @@ function openAddDriverModal() {
 async function openEditDriverModal(index) {
   _editingDriverIndex = index;
   const drivers = await getDrivers();
-  document.getElementById('driverModalTitle').textContent = 'Rename Driver';
-  document.getElementById('driverNameInput').value        = drivers[index] || '';
-  document.getElementById('err-driverName').textContent   = '';
+  const d = drivers[index] || {};
+  document.getElementById('driverModalTitle').textContent  = 'Edit Driver';
+  document.getElementById('driverNameInput').value         = d.name  || '';
+  document.getElementById('driverPhoneInput').value        = d.phone || '';
+  document.getElementById('err-driverName').textContent    = '';
   document.getElementById('driverModal').classList.remove('hidden');
   setTimeout(() => document.getElementById('driverNameInput').focus(), 50);
 }
@@ -79,30 +89,31 @@ function closeDriverModal() {
 
 async function saveDriver() {
   const name  = document.getElementById('driverNameInput').value.trim();
+  const phone = document.getElementById('driverPhoneInput').value.trim();
   const errEl = document.getElementById('err-driverName');
   if (!name) { errEl.textContent = 'Please enter a driver name.'; return; }
 
   try {
     if (await isApiAvailable()) {
       if (_editingDriverIndex === null) {
-        await _apiSaveDrivers('POST', '', { name });
+        await _apiSaveDrivers('POST', '', { name, phone });
       } else {
-        await _apiSaveDrivers('PATCH', '/' + _editingDriverIndex, { name });
+        await _apiSaveDrivers('PATCH', '/' + _editingDriverIndex, { name, phone });
       }
     } else {
       /* localStorage fallback */
       const drivers = await getDrivers();
       if (_editingDriverIndex === null) {
-        if (drivers.some(d => d.toLowerCase() === name.toLowerCase())) {
+        if (drivers.some(d => d.name.toLowerCase() === name.toLowerCase())) {
           errEl.textContent = 'A driver with this name already exists.'; return;
         }
-        drivers.push(name);
+        drivers.push({ name, phone });
       } else {
-        if (drivers.some((d, i) => i !== _editingDriverIndex && d.toLowerCase() === name.toLowerCase())) {
+        if (drivers.some((d, i) => i !== _editingDriverIndex && d.name.toLowerCase() === name.toLowerCase())) {
           errEl.textContent = 'A driver with this name already exists.'; return;
         }
-        const oldName = drivers[_editingDriverIndex];
-        drivers[_editingDriverIndex] = name;
+        const oldName = drivers[_editingDriverIndex].name;
+        drivers[_editingDriverIndex] = { name, phone };
         const bookings = (await getBookings()).map(b => b.driver === oldName ? { ...b, driver: name } : b);
         await saveBookings(bookings);
       }
@@ -118,7 +129,7 @@ async function saveDriver() {
 
 async function removeDriver(index) {
   const drivers = await getDrivers();
-  const name    = drivers[index];
+  const name    = drivers[index].name;
   if (!confirm(`Remove "${name}" from the driver list? Existing bookings will keep the name.`)) return;
 
   if (await isApiAvailable()) {
@@ -197,7 +208,7 @@ async function renderBookings(filter = '') {
       ? `<select class="status-select driver-select" onchange="assignDriver('${b.id}', this.value)">
            <option value="">— Assign Driver —</option>
            ${drivers.map(d =>
-               `<option value="${d}" ${b.driver === d ? 'selected' : ''}>${escHtml(d)}</option>`
+               `<option value="${d.name}" ${b.driver === d.name ? 'selected' : ''}>${escHtml(d.name)}</option>`
              ).join('')}
          </select>
          ${b.driver
@@ -459,7 +470,7 @@ async function openReportModal() {
 
   const drivers = await getDrivers();
   drvSel.innerHTML = '<option value="">All Drivers</option>' +
-    drivers.map(d => `<option value="${d}">${escHtml(d)}</option>`).join('');
+    drivers.map(d => `<option value="${d.name}">${escHtml(d.name)}</option>`).join('');
 
   document.getElementById('reportModal').classList.remove('hidden');
   generateReport();

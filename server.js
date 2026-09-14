@@ -67,7 +67,8 @@ if (USE_MONGO) {
   }, { versionKey: false });
 
   const driverSchema = new mongoose.Schema({
-    name: { type: String, required: true, unique: true },
+    name:  { type: String, required: true, unique: true },
+    phone: { type: String, default: '' },
   }, { versionKey: false });
 
   Booking = mongoose.model('Booking', bookingSchema);
@@ -98,7 +99,7 @@ async function seedDrivers() {
   const count = await Driver.countDocuments();
   if (count === 0) {
     const defaults = ['Pradip', 'Swapan', 'Ujjal', 'Totah', 'Samir'];
-    await Driver.insertMany(defaults.map(name => ({ name })));
+    await Driver.insertMany(defaults.map(name => ({ name, phone: '' })));
     console.log('  Seeded default drivers into MongoDB');
   }
 }
@@ -227,42 +228,46 @@ app.delete('/api/bookings', async (req, res) => {
    DRIVERS  /api/drivers
    ============================================================ */
 
-/* GET */
+/* GET — returns [{name, phone}, …] */
 app.get('/api/drivers', async (req, res) => {
   try {
     if (USE_MONGO) {
       const docs = await Driver.find().lean();
-      return res.json(docs.map(d => d.name));
+      return res.json(docs.map(d => ({ name: d.name, phone: d.phone || '' })));
     }
-    res.json(readJSON(DRIVERS_FILE));
+    /* JSON file: may be plain strings (legacy) or objects */
+    const raw = readJSON(DRIVERS_FILE);
+    res.json(raw.map(d => typeof d === 'string' ? { name: d, phone: '' } : d));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 /* POST — add */
 app.post('/api/drivers', async (req, res) => {
-  const name = (req.body.name || '').trim();
+  const name  = (req.body.name  || '').trim();
+  const phone = (req.body.phone || '').trim();
   if (!name) return res.status(400).json({ error: 'name is required' });
   try {
     if (USE_MONGO) {
       const exists = await Driver.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
       if (exists) return res.status(409).json({ error: 'Driver already exists' });
-      await Driver.create({ name });
+      await Driver.create({ name, phone });
       const all = await Driver.find().lean();
-      return res.status(201).json(all.map(d => d.name));
+      return res.status(201).json(all.map(d => ({ name: d.name, phone: d.phone || '' })));
     }
-    const drivers = readJSON(DRIVERS_FILE);
-    if (drivers.some(d => d.toLowerCase() === name.toLowerCase()))
+    const drivers = readJSON(DRIVERS_FILE).map(d => typeof d === 'string' ? { name: d, phone: '' } : d);
+    if (drivers.some(d => d.name.toLowerCase() === name.toLowerCase()))
       return res.status(409).json({ error: 'Driver already exists' });
-    drivers.push(name);
+    drivers.push({ name, phone });
     writeJSON(DRIVERS_FILE, drivers);
     res.status(201).json(drivers);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-/* PATCH — rename by index */
+/* PATCH — update name/phone by index */
 app.patch('/api/drivers/:index', async (req, res) => {
-  const idx  = parseInt(req.params.index, 10);
-  const name = (req.body.name || '').trim();
+  const idx   = parseInt(req.params.index, 10);
+  const name  = (req.body.name  || '').trim();
+  const phone = req.body.phone !== undefined ? (req.body.phone || '').trim() : undefined;
   if (!name) return res.status(400).json({ error: 'name is required' });
   try {
     if (USE_MONGO) {
@@ -272,18 +277,21 @@ app.patch('/api/drivers/:index', async (req, res) => {
       const clash = await Driver.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') }, _id: { $ne: docs[idx]._id } });
       if (clash) return res.status(409).json({ error: 'Driver name already exists' });
       const oldName = docs[idx].name;
-      await Driver.findByIdAndUpdate(docs[idx]._id, { name });
+      const upd = { name };
+      if (phone !== undefined) upd.phone = phone;
+      await Driver.findByIdAndUpdate(docs[idx]._id, upd);
       await Booking.updateMany({ driver: oldName }, { $set: { driver: name } });
       const updated = await Driver.find().lean();
-      return res.json(updated.map(d => d.name));
+      return res.json(updated.map(d => ({ name: d.name, phone: d.phone || '' })));
     }
-    const drivers = readJSON(DRIVERS_FILE);
+    const drivers = readJSON(DRIVERS_FILE).map(d => typeof d === 'string' ? { name: d, phone: '' } : d);
     if (isNaN(idx) || idx < 0 || idx >= drivers.length)
       return res.status(404).json({ error: 'Driver index out of range' });
-    if (drivers.some((d, i) => i !== idx && d.toLowerCase() === name.toLowerCase()))
+    if (drivers.some((d, i) => i !== idx && d.name.toLowerCase() === name.toLowerCase()))
       return res.status(409).json({ error: 'Driver name already exists' });
-    const oldName   = drivers[idx];
-    drivers[idx]    = name;
+    const oldName   = drivers[idx].name;
+    drivers[idx].name = name;
+    if (phone !== undefined) drivers[idx].phone = phone;
     writeJSON(DRIVERS_FILE, drivers);
     const bookings = readJSON(BOOKINGS_FILE).map(b => b.driver === oldName ? { ...b, driver: name } : b);
     writeJSON(BOOKINGS_FILE, bookings);
@@ -301,9 +309,9 @@ app.delete('/api/drivers/:index', async (req, res) => {
         return res.status(404).json({ error: 'Driver index out of range' });
       await Driver.findByIdAndDelete(docs[idx]._id);
       const updated = await Driver.find().lean();
-      return res.json(updated.map(d => d.name));
+      return res.json(updated.map(d => ({ name: d.name, phone: d.phone || '' })));
     }
-    const drivers = readJSON(DRIVERS_FILE);
+    const drivers = readJSON(DRIVERS_FILE).map(d => typeof d === 'string' ? { name: d, phone: '' } : d);
     if (isNaN(idx) || idx < 0 || idx >= drivers.length)
       return res.status(404).json({ error: 'Driver index out of range' });
     drivers.splice(idx, 1);
