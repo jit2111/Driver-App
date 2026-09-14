@@ -411,13 +411,17 @@ input.invalid {
 
 .footer-img {
   width: 60px;
-  object-fit: contain;
+  height: 60px;
+  object-fit: cover;
   margin-bottom: 8px;
-  opacity: 0.9;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+  opacity: 0.95;
   display: block;
   margin-left: auto;
   margin-right: auto;
+  border-radius: 50%;
+  background: #fff;
+  padding: 3px;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.35), 0 2px 10px rgba(0,0,0,0.3);
 }
 
 .footer-link {
@@ -842,6 +846,264 @@ input.invalid {
 .sms-toast.hidden { display: none; }
 
 /* ===========================
+   Today row highlight
+=========================== */
+.row-today {
+  background: #f0fdf4 !important;
+  border-left: 4px solid #16a34a;
+}
+
+.row-today:hover {
+  background: #dcfce7 !important;
+}
+
+.row-today td:first-child {
+  padding-left: 10px;
+}
+
+.today-badge {
+  display: inline-block;
+  background: #16a34a;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  vertical-align: middle;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.stat-pill-today {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0) !important;
+  border-color: #86efac !important;
+}
+
+.stat-pill-today .stat-value {
+  color: #15803d !important;
+}
+
+/* ===========================
+   Driver Management
+=========================== */
+.driver-mgmt-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.driver-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.driver-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0f4ff;
+  border: 1px solid #c7d7fe;
+  border-radius: 24px;
+  padding: 6px 10px 6px 14px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a3a8f;
+}
+
+.chip-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 2px 4px;
+  border-radius: 50%;
+  line-height: 1;
+  transition: background 0.12s;
+}
+
+.chip-edit { color: #2563eb; }
+.chip-edit:hover { background: #dbeafe; }
+.chip-del  { color: #ef4444; font-weight: 900; }
+.chip-del:hover  { background: #fee2e2; }
+
+/* ===========================
+   Report button
+=========================== */
+.btn-outline-report {
+  background: transparent;
+  border: 2px solid #1a3a8f;
+  color: #1a3a8f;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s, color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-outline-report:hover {
+  background: #1a3a8f;
+  color: #fff;
+}
+
+/* ===========================
+   Report Modal
+=========================== */
+.report-modal-box {
+  max-width: 760px !important;
+  width: 100% !important;
+  text-align: left !important;
+  padding: 36px 32px !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.report-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f1c3f;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.report-controls {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  align-items: flex-end;
+}
+
+.report-controls .form-group {
+  flex: 1;
+  min-width: 120px;
+}
+
+.report-summary {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.rsum-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f0f4ff;
+  border: 1px solid #c7d7fe;
+  border-radius: 10px;
+  padding: 10px 18px;
+  min-width: 72px;
+}
+
+.rsum-val {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1a3a8f;
+  line-height: 1.1;
+}
+
+.rsum-lbl {
+  font-size: 0.72rem;
+  color: #57606a;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.rsum-confirmed { background: #dcfce7; border-color: #86efac; }
+.rsum-confirmed .rsum-val { color: #15803d; }
+.rsum-pending   { background: #fef9c3; border-color: #fde047; }
+.rsum-pending   .rsum-val { color: #854d0e; }
+.rsum-cancelled { background: #fee2e2; border-color: #fca5a5; }
+.rsum-cancelled .rsum-val { color: #991b1b; }
+
+.report-driver-section {
+  margin-bottom: 24px;
+}
+
+.report-driver-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #0f1c3f, #1a3a8f);
+  color: #fff;
+  padding: 9px 16px;
+  border-radius: 10px 10px 0 0;
+}
+
+.report-drv-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.report-drv-count {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.report-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #dbe4ff;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+
+.report-table th {
+  background: #f0f4ff;
+  color: #1a3a8f;
+  font-weight: 700;
+  text-align: left;
+  padding: 9px 12px;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+.report-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f0f4ff;
+  vertical-align: middle;
+  color: #1f2328;
+}
+
+.report-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.report-table tbody tr:hover {
+  background: #f8faff;
+}
+
+.report-empty {
+  text-align: center;
+  color: #57606a;
+  padding: 32px 0;
+  font-size: 0.95rem;
+}
+
+/* ===========================
    Responsive
 =========================== */
 @media (max-width: 900px) {
@@ -861,13 +1123,38 @@ input.invalid {
   .perks-list { max-width: 360px; margin: 0 auto; }
 }
 
+@media (max-width: 700px) {
+  .report-modal-box {
+    padding: 24px 16px !important;
+  }
+  .report-controls {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .report-controls .form-group {
+    min-width: unset;
+    width: 100%;
+  }
+  .report-summary {
+    justify-content: center;
+  }
+  .driver-mgmt-header {
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 600px) {
   .hero-title { font-size: 2rem; }
   .card { padding: 24px 18px; }
   .form-card { padding: 28px 20px; border-radius: 16px; }
   .form-row { grid-template-columns: 1fr; }
   .admin-header { flex-direction: column; }
+  .admin-actions { width: 100%; justify-content: stretch; }
+  .admin-actions .btn { flex: 1; }
   .search-input { width: 100%; }
   .login-card { padding: 32px 24px; }
   .hero { padding: 48px 16px 40px; }
+  .driver-chip { font-size: 0.82rem; }
+  .stats-bar { gap: 8px; }
+  .stat-pill { padding: 10px 14px; }
 }

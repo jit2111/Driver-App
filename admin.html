@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Dashboard – TotahDa</title>
-  <link rel="stylesheet" href="style.css?v=8" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
 
@@ -41,6 +41,20 @@
 
   <!-- ===== ADMIN MAIN ===== -->
   <main class="main-content" id="adminMain" style="display:none;">
+
+    <!-- ── Driver Management ── -->
+    <div class="card admin-card" style="margin-bottom:24px;">
+      <div class="driver-mgmt-header">
+        <div>
+          <h2 class="card-title">🚗 Driver Management</h2>
+          <p class="card-subtitle">Add, rename or remove drivers available for assignment.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openAddDriverModal()">＋ Add Driver</button>
+      </div>
+      <div class="driver-chips" id="driverChips"></div>
+    </div>
+
+    <!-- ── Bookings ── -->
     <div class="card admin-card">
       <div class="admin-header">
         <div class="admin-title-row">
@@ -53,6 +67,8 @@
         <div class="admin-actions">
           <input type="text" id="searchInput" class="search-input"
             placeholder="Search by name or phone…" oninput="filterBookings()" />
+          <button class="btn btn-outline-report" onclick="openReportModal()">📊 Report</button>
+
           <button class="btn btn-danger" onclick="clearAllBookings()">Clear All</button>
         </div>
       </div>
@@ -89,7 +105,7 @@
   <!-- SMS Toast -->
   <div id="smsToast" class="sms-toast hidden"></div>
 
-  <!-- Confirm delete modal -->
+  <!-- Confirm delete booking modal -->
   <div id="deleteModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
       <div class="modal-icon">⚠️</div>
@@ -102,8 +118,53 @@
     </div>
   </div>
 
-  <script src="app.js?v=8"></script>
-  <script src="admin.js?v=8"></script>
+  <!-- Add/Edit Driver modal -->
+  <div id="driverModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-icon">🚗</div>
+      <h2 id="driverModalTitle">Add Driver</h2>
+      <div class="form-group" style="text-align:left;margin-bottom:8px;">
+        <label for="driverNameInput">Driver Name</label>
+        <input type="text" id="driverNameInput" placeholder="e.g. Rajan" autocomplete="off" />
+        <span class="field-error" id="err-driverName"></span>
+      </div>
+      <div class="modal-actions" style="margin-top:20px;">
+        <button class="btn btn-secondary" onclick="closeDriverModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveDriver()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Report modal -->
+  <div id="reportModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-box report-modal-box">
+      <h2 class="report-title">📊 Monthly Booking Report</h2>
+      <div class="report-controls">
+        <div class="form-group">
+          <label for="reportMonth">Month</label>
+          <select id="reportMonth" class="status-select" onchange="generateReport()"></select>
+        </div>
+        <div class="form-group">
+          <label for="reportYear">Year</label>
+          <select id="reportYear" class="status-select" onchange="generateReport()"></select>
+        </div>
+        <div class="form-group">
+          <label for="reportDriver">Driver</label>
+          <select id="reportDriver" class="status-select driver-select" onchange="generateReport()">
+            <option value="">All Drivers</option>
+          </select>
+        </div>
+      </div>
+      <div id="reportContent" class="report-content"></div>
+      <div class="modal-actions" style="margin-top:20px;flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="closeReportModal()">Close</button>
+        <button class="btn btn-primary" onclick="downloadReport()">⬇ Download CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=9"></script>
+  <script src="admin.js?v=9"></script>
   <script>
     if (sessionStorage.getItem('totahda_admin') === '1') {
       document.getElementById('adminLoginScreen').style.display = 'none';
@@ -116,6 +177,7 @@
         sessionStorage.setItem('totahda_admin', '1');
         document.getElementById('adminLoginScreen').style.display = 'none';
         document.getElementById('adminMain').style.display = '';
+        renderDriverChips();
         renderBookings();
       } else {
         document.getElementById('adminPin').classList.add('invalid');
