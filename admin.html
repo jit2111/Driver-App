@@ -105,6 +105,28 @@
   <!-- SMS Toast -->
   <div id="smsToast" class="sms-toast hidden"></div>
 
+  <!-- SMS Status Modal -->
+  <div id="smsModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-icon" id="smsModalIcon">📱</div>
+      <h2 id="smsModalTitle">Sending SMS…</h2>
+      <p id="smsModalBody" style="white-space:pre-line;margin:8px 0 12px;color:#57606a;font-size:0.9rem;"></p>
+
+      <!-- shown only in "preview" (unconfigured) state -->
+      <div id="smsModalPreviewBox" class="hidden">
+        <textarea id="smsModalPreview" class="sms-preview-textarea" readonly></textarea>
+        <button class="btn btn-outline-report btn-sm" style="margin-top:8px;"
+          onclick="navigator.clipboard.writeText(document.getElementById('smsModalPreview').value).then(()=>showToast('📋 Copied!'))">
+          📋 Copy Message
+        </button>
+      </div>
+
+      <div class="modal-actions" style="margin-top:20px;">
+        <button class="btn btn-primary" onclick="closeSmsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Confirm delete booking modal -->
   <div id="deleteModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box">

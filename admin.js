@@ -283,23 +283,88 @@ async function assignDriver(id, driver) {
 }
 
 /* ─────────────────────────────────────
-   SMS
+   SMS  (real-time via /api/sms)
 ───────────────────────────────────── */
 async function sendSMS(id) {
-  const all     = await getBookings();
-  const booking = all.find(b => b.id === id);
-  if (!booking || !booking.driver) return;
+  /* Show the modal immediately in "sending" state */
+  openSmsModal({ state: 'sending', name: '' });
 
-  const date    = formatDate(booking.tripDate);
-  const time    = formatTime(booking.tripTime);
-  const message =
-    `Hi ${booking.fullName}, your TotahDa driver has been confirmed! ` +
-    `Driver: ${booking.driver}. Date: ${date} at ${time}. ` +
-    `Booking ID: ${booking.id}. Thank you for choosing TotahDa!`;
+  try {
+    const res  = await fetch('/api/sms', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ bookingId: id }),
+    });
+    const data = await res.json();
 
-  const phone = booking.phone.replace(/\s+/g, '');
-  window.open(`sms:${phone}?body=${encodeURIComponent(message)}`, '_self');
-  showToast(`📱 SMS opened for ${booking.fullName} (Driver: ${booking.driver})`);
+    if (data.status === 'sent') {
+      openSmsModal({
+        state:   'sent',
+        name:    data.to,
+        sid:     data.sid,
+        message: `SMS delivered to ${data.to}`,
+      });
+      showToast(`✅ SMS sent to ${data.to}`);
+
+    } else if (data.status === 'unconfigured') {
+      /* Twilio not configured — show preview so admin can copy & send manually */
+      openSmsModal({
+        state:   'preview',
+        name:    data.to,
+        preview: data.preview,
+        message: 'Twilio not configured. Copy the message below to send manually.',
+      });
+
+    } else {
+      openSmsModal({
+        state:   'error',
+        message: data.error || 'Unknown error from server.',
+      });
+    }
+  } catch (err) {
+    openSmsModal({ state: 'error', message: err.message });
+  }
+}
+
+/* ─────────────────────────────────────
+   SMS modal
+───────────────────────────────────── */
+function openSmsModal({ state, name, sid, preview: previewText, message }) {
+  const modal      = document.getElementById('smsModal');
+  const iconEl     = document.getElementById('smsModalIcon');
+  const titleEl    = document.getElementById('smsModalTitle');
+  const bodyEl     = document.getElementById('smsModalBody');
+  const previewEl  = document.getElementById('smsModalPreview');
+  const previewBox = document.getElementById('smsModalPreviewBox');
+
+  if (state === 'sending') {
+    iconEl.textContent  = '⏳';
+    titleEl.textContent = 'Sending SMS…';
+    bodyEl.textContent  = 'Please wait while the message is being sent.';
+    previewBox.classList.add('hidden');
+  } else if (state === 'sent') {
+    iconEl.textContent  = '✅';
+    titleEl.textContent = 'SMS Sent!';
+    bodyEl.textContent  = message + (sid ? `\nMessage SID: ${sid}` : '');
+    previewBox.classList.add('hidden');
+  } else if (state === 'preview') {
+    iconEl.textContent    = '📋';
+    titleEl.textContent   = 'SMS Preview (Not Sent)';
+    bodyEl.textContent    = message;
+    previewEl.textContent = previewText || '';
+    previewBox.classList.remove('hidden');
+  } else {
+    iconEl.textContent  = '❌';
+    titleEl.textContent = 'SMS Failed';
+    bodyEl.textContent  = message;
+    previewBox.classList.add('hidden');
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function closeSmsModal() {
+  document.getElementById('smsModal').classList.add('hidden');
 }
 
 /* ─────────────────────────────────────

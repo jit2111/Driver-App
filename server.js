@@ -10,6 +10,24 @@ const express  = require('express');
 const cors     = require('cors');
 const fs       = require('fs');
 const path     = require('path');
+const https    = require('https');
+
+/* ── Load .env file without dotenv package ── */
+(function loadEnv() {
+  const envPath = path.join(__dirname, '.env');
+  if (!fs.existsSync(envPath)) return;
+  fs.readFileSync(envPath, 'utf8')
+    .split('\n')
+    .forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) return;
+      const eq = trimmed.indexOf('=');
+      if (eq === -1) return;
+      const key = trimmed.slice(0, eq).trim();
+      const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+      if (!(key in process.env)) process.env[key] = val;
+    });
+})();
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -288,6 +306,111 @@ app.delete('/api/drivers/:index', async (req, res) => {
     writeJSON(DRIVERS_FILE, drivers);
     res.json(drivers);
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* ============================================================
+   SMS  /api/sms
+   ============================================================ */
+
+/**
+ * POST /api/sms
+ * Body: { bookingId }
+ *
+ * Sends a real SMS via Twilio Messaging REST API.
+ * Requires env vars:
+ *   TWILIO_ACCOUNT_SID  — your Twilio Account SID
+ *   TWILIO_AUTH_TOKEN   — your Twilio Auth Token
+ *   TWILIO_FROM         — your Twilio "From" phone number (e.g. +1415XXXXXXX)
+ */
+app.post('/api/sms', async (req, res) => {
+  const { bookingId } = req.body || {};
+  if (!bookingId) return res.status(400).json({ error: 'bookingId is required' });
+
+  /* ── Fetch the booking ── */
+  let booking;
+  try {
+    if (USE_MONGO) {
+      booking = await Booking.findOne({ id: bookingId }).lean();
+    } else {
+      booking = readJSON(BOOKINGS_FILE).find(b => b.id === bookingId);
+    }
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to fetch booking: ' + e.message });
+  }
+  if (!booking)        return res.status(404).json({ error: 'Booking not found' });
+  if (!booking.driver) return res.status(400).json({ error: 'No driver assigned to this booking' });
+
+  /* ── Build message ── */
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const [y, m, d] = (booking.tripDate || '').split('-');
+  const dateStr = (y && m && d) ? `${d} ${months[parseInt(m,10)-1]} ${y}` : booking.tripDate;
+
+  let timeStr = booking.tripTime || '';
+  if (timeStr.includes(':')) {
+    const [hh, mm] = timeStr.split(':');
+    const h = parseInt(hh, 10);
+    timeStr = `${h % 12 || 12}:${mm} ${h < 12 ? 'AM' : 'PM'}`;
+  }
+
+  const msgBody =
+    `Hi ${booking.fullName}, your TotahDa driver has been confirmed! ` +
+    `Driver: ${booking.driver}. Date: ${dateStr} at ${timeStr}. ` +
+    `Booking ID: ${booking.id}. Thank you for choosing TotahDa!`;
+
+  /* ── Twilio credentials ── */
+  const sid   = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  const from  = process.env.TWILIO_FROM;
+
+  if (!sid || !token || !from) {
+    /* Return the composed message so the admin can send it manually */
+    return res.json({
+      status: 'unconfigured',
+      message: 'Twilio env vars not set — SMS not sent.',
+      preview: msgBody,
+      to: booking.phone,
+    });
+  }
+
+  /* ── Send via Twilio REST API ── */
+  const to   = booking.phone.replace(/\s+/g, '');
+  const body = new URLSearchParams({ To: to, From: from, Body: msgBody }).toString();
+
+  const options = {
+    hostname: 'api.twilio.com',
+    path:     `/2010-04-01/Accounts/${sid}/Messages.json`,
+    method:   'POST',
+    headers:  {
+      'Content-Type':   'application/x-www-form-urlencoded',
+      'Content-Length': Buffer.byteLength(body),
+      'Authorization':  'Basic ' + Buffer.from(`${sid}:${token}`).toString('base64'),
+    },
+  };
+
+  new Promise((resolve, reject) => {
+    const req2 = https.request(options, r2 => {
+      let raw = '';
+      r2.on('data', chunk => { raw += chunk; });
+      r2.on('end',  () => resolve({ statusCode: r2.statusCode, body: raw }));
+    });
+    req2.on('error', reject);
+    req2.write(body);
+    req2.end();
+  })
+  .then(({ statusCode, body: raw }) => {
+    const data = JSON.parse(raw);
+    if (statusCode >= 200 && statusCode < 300) {
+      console.log(`  📱 SMS sent to ${to}  SID: ${data.sid}`);
+      res.json({ status: 'sent', sid: data.sid, to });
+    } else {
+      console.error(`  ❌ Twilio error ${statusCode}:`, data.message);
+      res.status(502).json({ error: data.message || 'Twilio error', code: data.code });
+    }
+  })
+  .catch(err => {
+    console.error('  ❌ SMS network error:', err.message);
+    res.status(500).json({ error: err.message });
+  });
 });
 
 /* ============================================================

@@ -845,6 +845,21 @@ input.invalid {
 
 .sms-toast.hidden { display: none; }
 
+/* SMS preview textarea (shown when Twilio not configured) */
+.sms-preview-textarea {
+  width: 100%;
+  min-height: 110px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  resize: vertical;
+  background: #f7f8fa;
+  color: #1f2328;
+  box-sizing: border-box;
+}
+
 /* ===========================
    Today row highlight
 =========================== */
