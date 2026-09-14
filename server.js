@@ -18,6 +18,11 @@ const DB_DIR       = path.join(__dirname, 'db');
 const BOOKINGS_FILE = path.join(DB_DIR, 'bookings.json');
 const DRIVERS_FILE  = path.join(DB_DIR, 'drivers.json');
 
+/* ── ensure db dir + files exist (needed on fresh cloud deploy) ── */
+if (!fs.existsSync(DB_DIR))       fs.mkdirSync(DB_DIR, { recursive: true });
+if (!fs.existsSync(BOOKINGS_FILE)) fs.writeFileSync(BOOKINGS_FILE, '[]', 'utf8');
+if (!fs.existsSync(DRIVERS_FILE))  fs.writeFileSync(DRIVERS_FILE, '["Pradip","Swapan","Ujjal","Totah","Samir"]', 'utf8');
+
 /* ── middleware ── */
 app.use(cors());
 app.use(express.json());
@@ -41,6 +46,13 @@ function writeJSON(filePath, data) {
 function newId() {
   return 'BK-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
 }
+
+/* ─────────────────────────────────────────────────────────
+   Health check
+───────────────────────────────────────────────────────── */
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
+});
 
 /* ─────────────────────────────────────────────────────────
    BOOKINGS  /api/bookings
