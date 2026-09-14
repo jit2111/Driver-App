@@ -104,9 +104,27 @@ async function updateBookingStatus(id, status) {
 const bookingForm = document.getElementById('bookingForm');
 
 if (bookingForm) {
-  /* Set minimum date to today */
   const tripDateInput = document.getElementById('tripDate');
-  tripDateInput.min = new Date().toISOString().split('T')[0];
+  const tripTimeInput = document.getElementById('tripTime');
+
+  /* ── Default: tomorrow at 10:00 AM ── */
+  function applyFormDefaults() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const yyyy = tomorrow.getFullYear();
+    const mm   = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const dd   = String(tomorrow.getDate()).padStart(2, '0');
+    tripDateInput.min   = new Date().toISOString().split('T')[0];
+    tripDateInput.value = `${yyyy}-${mm}-${dd}`;
+    tripTimeInput.value = '10:00';
+    /* restore radio defaults */
+    const shortTrip = document.querySelector('input[name="tripType"][value="Short Trip"]');
+    const regular   = document.querySelector('input[name="driverChoice"][value="Regular"]');
+    if (shortTrip) shortTrip.checked = true;
+    if (regular)   regular.checked   = true;
+  }
+
+  applyFormDefaults();
 
   bookingForm.addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -129,6 +147,7 @@ if (bookingForm) {
       const saved = await addBooking(booking);
       showSuccessModal(saved);
       bookingForm.reset();
+      applyFormDefaults();
     } catch (err) {
       alert('Could not save booking. Please try again.');
       console.error(err);

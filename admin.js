@@ -220,8 +220,20 @@ async function renderBookings(filter = '') {
         ${isClash ? '<span class="clash-badge">⚠ Clash</span>' : ''}
       </td>
       <td>${formatTime(b.tripTime)}</td>
-      <td>${b.tripType     ? `<span class="trip-type-badge trip-type-${b.tripType.split(' ')[0].toLowerCase()}">${b.tripType}</span>`     : '<span style="color:#aaa">—</span>'}</td>
-      <td>${b.driverChoice ? `<span class="driver-choice-badge driver-choice-${b.driverChoice.toLowerCase()}">${b.driverChoice}</span>` : '<span style="color:#aaa">—</span>'}</td>
+      <td>
+        <select class="status-select trip-type-select" onchange="updateTripField('${b.id}','tripType',this.value)">
+          ${['Short Trip','Long Trip'].map(t =>
+              `<option value="${t}" ${(b.tripType||'Short Trip')===t?'selected':''}>${t}</option>`
+            ).join('')}
+        </select>
+      </td>
+      <td>
+        <select class="status-select driver-choice-select" onchange="updateTripField('${b.id}','driverChoice',this.value)">
+          ${['Regular','Any'].map(c =>
+              `<option value="${c}" ${(b.driverChoice||'Regular')===c?'selected':''}>${c}</option>`
+            ).join('')}
+        </select>
+      </td>
       <td>
         <select class="status-select" onchange="changeStatus('${b.id}', this.value)">
           ${['Confirmed','Pending','Cancelled'].map(s =>
@@ -281,6 +293,11 @@ async function changeStatus(id, status) {
 
 async function assignDriver(id, driver) {
   await updateBookingField(id, { driver });
+  renderBookings(document.getElementById('searchInput').value);
+}
+
+async function updateTripField(id, field, value) {
+  await updateBookingField(id, { [field]: value });
   renderBookings(document.getElementById('searchInput').value);
 }
 

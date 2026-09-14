@@ -832,6 +832,28 @@ input.invalid {
   border-color: #7c3aed;
 }
 
+.trip-type-select {
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.trip-type-select:focus {
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+  border-color: #3b82f6;
+}
+
+.driver-choice-select {
+  border-color: #a7f3d0;
+  color: #065f46;
+  background: #f0fdf4;
+}
+
+.driver-choice-select:focus {
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+  border-color: #10b981;
+}
+
 .btn-sms {
   background: linear-gradient(135deg, #16a34a, #15803d);
   color: #fff;
