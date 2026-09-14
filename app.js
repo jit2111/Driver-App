@@ -117,10 +117,12 @@ if (bookingForm) {
     submitBtn.textContent = 'Booking…';
 
     const booking = {
-      fullName: document.getElementById('fullName').value.trim(),
-      phone:    document.getElementById('phone').value.trim(),
-      tripDate: document.getElementById('tripDate').value,
-      tripTime: document.getElementById('tripTime').value,
+      fullName:     document.getElementById('fullName').value.trim(),
+      phone:        document.getElementById('phone').value.trim(),
+      tripDate:     document.getElementById('tripDate').value,
+      tripTime:     document.getElementById('tripTime').value,
+      tripType:     document.querySelector('input[name="tripType"]:checked').value,
+      driverChoice: document.querySelector('input[name="driverChoice"]:checked').value,
     };
 
     try {

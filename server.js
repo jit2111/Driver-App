@@ -54,14 +54,16 @@ if (USE_MONGO) {
     .catch(err => { console.error('  ❌ MongoDB error:', err.message); process.exit(1); });
 
   const bookingSchema = new mongoose.Schema({
-    id:        { type: String, required: true, unique: true },
-    fullName:  String,
-    phone:     String,
-    tripDate:  String,
-    tripTime:  String,
-    status:    { type: String, default: 'Confirmed' },
-    driver:    { type: String, default: '' },
-    bookedAt:  String,
+    id:           { type: String, required: true, unique: true },
+    fullName:     String,
+    phone:        String,
+    tripDate:     String,
+    tripTime:     String,
+    status:       { type: String, default: 'Confirmed' },
+    driver:       { type: String, default: '' },
+    tripType:     { type: String, default: 'Short Trip' },
+    driverChoice: { type: String, default: 'Regular' },
+    bookedAt:     String,
   }, { versionKey: false });
 
   const driverSchema = new mongoose.Schema({
@@ -152,14 +154,16 @@ app.post('/api/bookings', async (req, res) => {
     return res.status(400).json({ error: 'fullName, phone, tripDate and tripTime are required' });
 
   const booking = {
-    id:       newId(),
-    fullName: fullName.trim(),
-    phone:    phone.trim(),
+    id:           newId(),
+    fullName:     fullName.trim(),
+    phone:        phone.trim(),
     tripDate,
     tripTime,
-    status:   'Confirmed',
-    driver:   req.body.driver || '',
-    bookedAt: new Date().toISOString(),
+    status:       'Confirmed',
+    driver:       req.body.driver       || '',
+    tripType:     req.body.tripType     || 'Short Trip',
+    driverChoice: req.body.driverChoice || 'Regular',
+    bookedAt:     new Date().toISOString(),
   };
   try {
     if (USE_MONGO) {
@@ -175,7 +179,7 @@ app.post('/api/bookings', async (req, res) => {
 
 /* PATCH — partial update */
 app.patch('/api/bookings/:id', async (req, res) => {
-  const allowed = ['fullName', 'phone', 'tripDate', 'tripTime', 'status', 'driver'];
+  const allowed = ['fullName', 'phone', 'tripDate', 'tripTime', 'status', 'driver', 'tripType', 'driverChoice'];
   const updates = {};
   allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = req.body[k]; });
 

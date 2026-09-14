@@ -220,6 +220,8 @@ async function renderBookings(filter = '') {
         ${isClash ? '<span class="clash-badge">⚠ Clash</span>' : ''}
       </td>
       <td>${formatTime(b.tripTime)}</td>
+      <td>${b.tripType     ? `<span class="trip-type-badge trip-type-${b.tripType.split(' ')[0].toLowerCase()}">${b.tripType}</span>`     : '<span style="color:#aaa">—</span>'}</td>
+      <td>${b.driverChoice ? `<span class="driver-choice-badge driver-choice-${b.driverChoice.toLowerCase()}">${b.driverChoice}</span>` : '<span style="color:#aaa">—</span>'}</td>
       <td>
         <select class="status-select" onchange="changeStatus('${b.id}', this.value)">
           ${['Confirmed','Pending','Cancelled'].map(s =>
