@@ -1,54 +1,120 @@
 /* ===========================
    app.js — Shared logic
-   Used by both index.html and admin.html
+   Used by both index.html and admin.html.
+
+   Storage strategy:
+     • When running through the Node server (server.js) all reads/writes
+       go to the REST API  →  db/bookings.json  /  db/drivers.json
+     • When opened as a plain file (GitHub Pages / no server) it falls
+       back to localStorage so the static demo still works.
 =========================== */
 
+const API_BASE    = '/api';
 const STORAGE_KEY = 'totahda_bookings';
 
-/* ---------- Storage helpers ---------- */
-function getBookings() {
+/* ─────────────────────────────────────
+   API availability detection
+───────────────────────────────────── */
+let _apiAvailable = null;   // null = unknown, true/false after first probe
+
+async function isApiAvailable() {
+  if (_apiAvailable !== null) return _apiAvailable;
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    const r = await fetch(API_BASE + '/bookings', { method: 'HEAD' });
+    _apiAvailable = r.ok || r.status === 405;   // 405 HEAD not allowed still means server is up
   } catch {
-    return [];
+    _apiAvailable = false;
   }
+  return _apiAvailable;
 }
 
-function saveBookings(bookings) {
+/* ─────────────────────────────────────
+   Booking helpers  (async, API-first)
+───────────────────────────────────── */
+
+async function getBookings() {
+  if (await isApiAvailable()) {
+    const r = await fetch(API_BASE + '/bookings');
+    if (r.ok) return r.json();
+  }
+  /* localStorage fallback */
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+
+async function saveBookings(bookings) {
+  /* localStorage-only path (used by legacy callers when API unavailable) */
   localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
 }
 
-function addBooking(booking) {
-  const bookings = getBookings();
-  booking.id = 'BK-' + Date.now();
-  booking.bookedAt = new Date().toISOString();
-  booking.status = 'Confirmed';
-  bookings.unshift(booking);
-  saveBookings(bookings);
-  return booking;
+async function addBooking(booking) {
+  if (await isApiAvailable()) {
+    const r = await fetch(API_BASE + '/bookings', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(booking),
+    });
+    if (r.ok) return r.json();
+  }
+  /* localStorage fallback */
+  const bookings    = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  const saved       = { ...booking };
+  saved.id          = 'BK-' + Date.now();
+  saved.bookedAt    = new Date().toISOString();
+  saved.status      = 'Confirmed';
+  saved.driver      = '';
+  bookings.unshift(saved);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+  return saved;
 }
 
-function deleteBooking(id) {
-  const bookings = getBookings().filter(b => b.id !== id);
-  saveBookings(bookings);
+async function deleteBooking(id) {
+  if (await isApiAvailable()) {
+    await fetch(API_BASE + '/bookings/' + id, { method: 'DELETE' });
+    return;
+  }
+  const bookings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]').filter(b => b.id !== id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
 }
 
-function updateBookingStatus(id, status) {
-  const bookings = getBookings().map(b => b.id === id ? { ...b, status } : b);
-  saveBookings(bookings);
+async function updateBookingField(id, fields) {
+  if (await isApiAvailable()) {
+    const r = await fetch(API_BASE + '/bookings/' + id, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(fields),
+    });
+    if (r.ok) return r.json();
+  }
+  /* localStorage fallback */
+  const bookings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]').map(b =>
+    b.id === id ? { ...b, ...fields } : b
+  );
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
 }
 
-/* ---------- Booking Form (index.html only) ---------- */
+/* Kept for backwards compat with existing callers */
+async function updateBookingStatus(id, status) {
+  return updateBookingField(id, { status });
+}
+
+/* ─────────────────────────────────────
+   Booking Form  (index.html only)
+───────────────────────────────────── */
 const bookingForm = document.getElementById('bookingForm');
 
 if (bookingForm) {
-  // Set minimum date to today
+  /* Set minimum date to today */
   const tripDateInput = document.getElementById('tripDate');
   tripDateInput.min = new Date().toISOString().split('T')[0];
 
-  bookingForm.addEventListener('submit', function (e) {
+  bookingForm.addEventListener('submit', async function (e) {
     e.preventDefault();
     if (!validateForm()) return;
+
+    const submitBtn = bookingForm.querySelector('[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Booking…';
 
     const booking = {
       fullName: document.getElementById('fullName').value.trim(),
@@ -57,9 +123,17 @@ if (bookingForm) {
       tripTime: document.getElementById('tripTime').value,
     };
 
-    const saved = addBooking(booking);
-    showSuccessModal(saved);
-    bookingForm.reset();
+    try {
+      const saved = await addBooking(booking);
+      showSuccessModal(saved);
+      bookingForm.reset();
+    } catch (err) {
+      alert('Could not save booking. Please try again.');
+      console.error(err);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '🚗 Confirm Booking';
+    }
   });
 }
 
@@ -87,10 +161,9 @@ function validateForm() {
     }
   });
 
-  // Basic phone pattern check
-  const phone = document.getElementById('phone');
+  const phone    = document.getElementById('phone');
   const phoneErr = document.getElementById('err-phone');
-  if (phone.value.trim() && !/^[\d\s\+\-\(\)]{6,20}$/.test(phone.value.trim())) {
+  if (phone && phone.value.trim() && !/^[\d\s\+\-\(\)]{6,20}$/.test(phone.value.trim())) {
     phone.classList.add('invalid');
     phoneErr.textContent = 'Enter a valid phone number.';
     valid = false;
@@ -99,7 +172,9 @@ function validateForm() {
   return valid;
 }
 
-/* ---------- Modal ---------- */
+/* ─────────────────────────────────────
+   Modal
+───────────────────────────────────── */
 function showSuccessModal(booking) {
   const modal = document.getElementById('successModal');
   const msg   = document.getElementById('modalMessage');
@@ -114,7 +189,9 @@ function closeModal() {
   document.getElementById('successModal').classList.add('hidden');
 }
 
-/* ---------- Utility ---------- */
+/* ─────────────────────────────────────
+   Utility
+───────────────────────────────────── */
 function formatDate(dateStr) {
   if (!dateStr) return '—';
   const [y, m, d] = dateStr.split('-');
@@ -126,7 +203,7 @@ function formatTime(timeStr) {
   if (!timeStr) return '—';
   const [h, min] = timeStr.split(':').map(Number);
   const ampm = h >= 12 ? 'PM' : 'AM';
-  const hr = h % 12 || 12;
+  const hr   = h % 12 || 12;
   return `${hr}:${String(min).padStart(2,'0')} ${ampm}`;
 }
 

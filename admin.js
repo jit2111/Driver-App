@@ -2,54 +2,72 @@
    admin.js — Admin dashboard logic
 =========================== */
 
-/* ─── Driver storage ─── */
-const DRIVERS_KEY = 'totahda_drivers';
-const DEFAULT_DRIVERS = ['Pradip', 'Swapan', 'Ujjal', 'Totah', 'Samir'];
+const DRIVERS_KEY      = 'totahda_drivers';
+const DEFAULT_DRIVERS  = ['Pradip', 'Swapan', 'Ujjal', 'Totah', 'Samir'];
 
-function getDrivers() {
+/* ─────────────────────────────────────
+   Driver storage  (API-first, localStorage fallback)
+───────────────────────────────────── */
+
+async function getDrivers() {
+  if (await isApiAvailable()) {
+    const r = await fetch('/api/drivers');
+    if (r.ok) return r.json();
+  }
   try {
     const stored = JSON.parse(localStorage.getItem(DRIVERS_KEY));
     return Array.isArray(stored) && stored.length ? stored : [...DEFAULT_DRIVERS];
-  } catch {
-    return [...DEFAULT_DRIVERS];
+  } catch { return [...DEFAULT_DRIVERS]; }
+}
+
+async function _apiSaveDrivers(method, path, body) {
+  const r = await fetch('/api/drivers' + path, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.error || 'Request failed');
   }
+  return r.json();
 }
 
-function saveDrivers(list) {
-  localStorage.setItem(DRIVERS_KEY, JSON.stringify(list));
-}
-
-/* ─── Driver chips UI ─── */
-function renderDriverChips() {
-  const chips = document.getElementById('driverChips');
-  const drivers = getDrivers();
+/* ─────────────────────────────────────
+   Driver chips UI
+───────────────────────────────────── */
+async function renderDriverChips() {
+  const chips   = document.getElementById('driverChips');
+  const drivers = await getDrivers();
   chips.innerHTML = drivers.map((d, i) => `
     <div class="driver-chip">
       <span class="chip-name">${escHtml(d)}</span>
       <button class="chip-btn chip-edit" title="Rename" onclick="openEditDriverModal(${i})">✏️</button>
-      <button class="chip-btn chip-del" title="Remove" onclick="removeDriver(${i})">✕</button>
+      <button class="chip-btn chip-del"  title="Remove" onclick="removeDriver(${i})">✕</button>
     </div>
   `).join('');
 }
 
-/* ─── Driver modal ─── */
+/* ─────────────────────────────────────
+   Driver modal
+───────────────────────────────────── */
 let _editingDriverIndex = null;
 
 function openAddDriverModal() {
   _editingDriverIndex = null;
   document.getElementById('driverModalTitle').textContent = 'Add Driver';
-  document.getElementById('driverNameInput').value = '';
-  document.getElementById('err-driverName').textContent = '';
+  document.getElementById('driverNameInput').value        = '';
+  document.getElementById('err-driverName').textContent   = '';
   document.getElementById('driverModal').classList.remove('hidden');
   setTimeout(() => document.getElementById('driverNameInput').focus(), 50);
 }
 
-function openEditDriverModal(index) {
+async function openEditDriverModal(index) {
   _editingDriverIndex = index;
-  const drivers = getDrivers();
+  const drivers = await getDrivers();
   document.getElementById('driverModalTitle').textContent = 'Rename Driver';
-  document.getElementById('driverNameInput').value = drivers[index] || '';
-  document.getElementById('err-driverName').textContent = '';
+  document.getElementById('driverNameInput').value        = drivers[index] || '';
+  document.getElementById('err-driverName').textContent   = '';
   document.getElementById('driverModal').classList.remove('hidden');
   setTimeout(() => document.getElementById('driverNameInput').focus(), 50);
 }
@@ -59,66 +77,83 @@ function closeDriverModal() {
   document.getElementById('driverModal').classList.add('hidden');
 }
 
-function saveDriver() {
-  const name = document.getElementById('driverNameInput').value.trim();
+async function saveDriver() {
+  const name  = document.getElementById('driverNameInput').value.trim();
   const errEl = document.getElementById('err-driverName');
-  if (!name) {
-    errEl.textContent = 'Please enter a driver name.';
-    return;
-  }
-  const drivers = getDrivers();
-  if (_editingDriverIndex === null) {
-    if (drivers.some(d => d.toLowerCase() === name.toLowerCase())) {
-      errEl.textContent = 'A driver with this name already exists.';
-      return;
+  if (!name) { errEl.textContent = 'Please enter a driver name.'; return; }
+
+  try {
+    if (await isApiAvailable()) {
+      if (_editingDriverIndex === null) {
+        await _apiSaveDrivers('POST', '', { name });
+      } else {
+        await _apiSaveDrivers('PATCH', '/' + _editingDriverIndex, { name });
+      }
+    } else {
+      /* localStorage fallback */
+      const drivers = await getDrivers();
+      if (_editingDriverIndex === null) {
+        if (drivers.some(d => d.toLowerCase() === name.toLowerCase())) {
+          errEl.textContent = 'A driver with this name already exists.'; return;
+        }
+        drivers.push(name);
+      } else {
+        if (drivers.some((d, i) => i !== _editingDriverIndex && d.toLowerCase() === name.toLowerCase())) {
+          errEl.textContent = 'A driver with this name already exists.'; return;
+        }
+        const oldName = drivers[_editingDriverIndex];
+        drivers[_editingDriverIndex] = name;
+        const bookings = (await getBookings()).map(b => b.driver === oldName ? { ...b, driver: name } : b);
+        await saveBookings(bookings);
+      }
+      localStorage.setItem(DRIVERS_KEY, JSON.stringify(drivers));
     }
-    drivers.push(name);
-  } else {
-    if (drivers.some((d, i) => i !== _editingDriverIndex && d.toLowerCase() === name.toLowerCase())) {
-      errEl.textContent = 'A driver with this name already exists.';
-      return;
-    }
-    const oldName = drivers[_editingDriverIndex];
-    drivers[_editingDriverIndex] = name;
-    // Update any bookings that referenced the old name
-    const bookings = getBookings().map(b => b.driver === oldName ? { ...b, driver: name } : b);
-    saveBookings(bookings);
+    closeDriverModal();
+    await renderDriverChips();
+    await renderBookings(document.getElementById('searchInput').value);
+  } catch (err) {
+    errEl.textContent = err.message || 'Could not save driver.';
   }
-  saveDrivers(drivers);
-  closeDriverModal();
-  renderDriverChips();
-  renderBookings(document.getElementById('searchInput').value);
 }
 
-function removeDriver(index) {
-  const drivers = getDrivers();
-  const name = drivers[index];
+async function removeDriver(index) {
+  const drivers = await getDrivers();
+  const name    = drivers[index];
   if (!confirm(`Remove "${name}" from the driver list? Existing bookings will keep the name.`)) return;
-  drivers.splice(index, 1);
-  saveDrivers(drivers);
-  renderDriverChips();
-  renderBookings(document.getElementById('searchInput').value);
+
+  if (await isApiAvailable()) {
+    await fetch('/api/drivers/' + index, { method: 'DELETE' });
+  } else {
+    drivers.splice(index, 1);
+    localStorage.setItem(DRIVERS_KEY, JSON.stringify(drivers));
+  }
+  await renderDriverChips();
+  await renderBookings(document.getElementById('searchInput').value);
 }
 
-// Allow Enter key in driver name input
+/* Allow Enter key in driver name input */
 document.addEventListener('DOMContentLoaded', function () {
   const inp = document.getElementById('driverNameInput');
   if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') saveDriver(); });
 });
 
-/* ─── Today highlight helper ─── */
+/* ─────────────────────────────────────
+   Today helper
+───────────────────────────────────── */
 function getTodayStr() {
   return new Date().toISOString().split('T')[0];
 }
 
-/* ---------- Render ---------- */
-function renderBookings(filter = '') {
-  const all   = getBookings();
-  const term  = filter.toLowerCase();
-  const list  = term
+/* ─────────────────────────────────────
+   Render bookings table
+───────────────────────────────────── */
+async function renderBookings(filter = '') {
+  const all     = await getBookings();
+  const term    = filter.toLowerCase();
+  const list    = term
     ? all.filter(b =>
         b.fullName.toLowerCase().includes(term) ||
-        b.phone.toLowerCase().includes(term) ||
+        b.phone.toLowerCase().includes(term)    ||
         (b.id || '').toLowerCase().includes(term)
       )
     : all;
@@ -144,21 +179,20 @@ function renderBookings(filter = '') {
   emptyState.classList.add('hidden');
   document.getElementById('bookingsTable').style.display = '';
 
-  // Build a set of date+time keys that appear more than once across ALL bookings
+  /* clash detection */
   const slotCounts = {};
   all.forEach(b => {
     const key = `${b.tripDate}|${b.tripTime}`;
     slotCounts[key] = (slotCounts[key] || 0) + 1;
   });
 
-  const drivers = getDrivers();
+  const drivers = await getDrivers();
 
   list.forEach((b, i) => {
     const isConfirmed = b.status === 'Confirmed';
     const isClash     = slotCounts[`${b.tripDate}|${b.tripTime}`] > 1;
     const isToday     = b.tripDate === today;
 
-    // Driver cell — dropdown only when Confirmed
     const driverCell = isConfirmed
       ? `<select class="status-select driver-select" onchange="assignDriver('${b.id}', this.value)">
            <option value="">— Assign Driver —</option>
@@ -203,14 +237,16 @@ function renderBookings(filter = '') {
   });
 }
 
-/* ---------- Stats ---------- */
+/* ─────────────────────────────────────
+   Stats bar
+───────────────────────────────────── */
 function renderStats(bookings) {
-  const statsBar = document.getElementById('statsBar');
-  const total     = bookings.length;
-  const confirmed = bookings.filter(b => b.status === 'Confirmed').length;
-  const pending   = bookings.filter(b => b.status === 'Pending').length;
-  const cancelled = bookings.filter(b => b.status === 'Cancelled').length;
-  const today     = getTodayStr();
+  const statsBar   = document.getElementById('statsBar');
+  const total      = bookings.length;
+  const confirmed  = bookings.filter(b => b.status === 'Confirmed').length;
+  const pending    = bookings.filter(b => b.status === 'Pending').length;
+  const cancelled  = bookings.filter(b => b.status === 'Cancelled').length;
+  const today      = getTodayStr();
   const todayCount = bookings.filter(b => b.tripDate === today).length;
 
   const pills = [
@@ -229,28 +265,29 @@ function renderStats(bookings) {
   `).join('');
 }
 
-/* ---------- Search ---------- */
+/* ─────────────────────────────────────
+   Search / Status / Driver assignment
+───────────────────────────────────── */
 function filterBookings() {
-  const term = document.getElementById('searchInput').value;
-  renderBookings(term);
-}
-
-/* ---------- Status change ---------- */
-function changeStatus(id, status) {
-  updateBookingStatus(id, status);
   renderBookings(document.getElementById('searchInput').value);
 }
 
-/* ---------- Assign Driver ---------- */
-function assignDriver(id, driver) {
-  const bookings = getBookings().map(b => b.id === id ? { ...b, driver } : b);
-  saveBookings(bookings);
+async function changeStatus(id, status) {
+  await updateBookingStatus(id, status);
   renderBookings(document.getElementById('searchInput').value);
 }
 
-/* ---------- Send SMS ---------- */
-function sendSMS(id) {
-  const booking = getBookings().find(b => b.id === id);
+async function assignDriver(id, driver) {
+  await updateBookingField(id, { driver });
+  renderBookings(document.getElementById('searchInput').value);
+}
+
+/* ─────────────────────────────────────
+   SMS
+───────────────────────────────────── */
+async function sendSMS(id) {
+  const all     = await getBookings();
+  const booking = all.find(b => b.id === id);
   if (!booking || !booking.driver) return;
 
   const date    = formatDate(booking.tripDate);
@@ -265,7 +302,9 @@ function sendSMS(id) {
   showToast(`📱 SMS opened for ${booking.fullName} (Driver: ${booking.driver})`);
 }
 
-/* ---------- Toast ---------- */
+/* ─────────────────────────────────────
+   Toast
+───────────────────────────────────── */
 function showToast(msg) {
   const toast = document.getElementById('smsToast');
   toast.textContent = msg;
@@ -273,7 +312,9 @@ function showToast(msg) {
   setTimeout(() => toast.classList.add('hidden'), 4000);
 }
 
-/* ---------- Delete booking ---------- */
+/* ─────────────────────────────────────
+   Delete booking
+───────────────────────────────────── */
 let pendingDeleteId = null;
 
 function openDeleteModal(id) {
@@ -286,50 +327,53 @@ function closeDeleteModal() {
   document.getElementById('deleteModal').classList.add('hidden');
 }
 
-function confirmDelete() {
+async function confirmDelete() {
   if (pendingDeleteId) {
-    deleteBooking(pendingDeleteId);
+    await deleteBooking(pendingDeleteId);
     pendingDeleteId = null;
   }
   closeDeleteModal();
   renderBookings(document.getElementById('searchInput').value);
 }
 
-/* ---------- Clear all ---------- */
-function clearAllBookings() {
+/* ─────────────────────────────────────
+   Clear all
+───────────────────────────────────── */
+async function clearAllBookings() {
   if (!confirm('Are you sure you want to delete ALL bookings? This cannot be undone.')) return;
-  localStorage.removeItem('totahda_bookings');
+  if (await isApiAvailable()) {
+    await fetch('/api/bookings', { method: 'DELETE' });
+  } else {
+    localStorage.removeItem('totahda_bookings');
+  }
   renderBookings();
 }
 
-/* ─────────────────────────────────────────
+/* ─────────────────────────────────────
    REPORT
-───────────────────────────────────────── */
+───────────────────────────────────── */
 const MONTH_NAMES = ['January','February','March','April','May','June',
                      'July','August','September','October','November','December'];
 
-function openReportModal() {
-  // Populate year/month selectors
-  const allBookings = getBookings();
-  const now = new Date();
-  const yearSel  = document.getElementById('reportYear');
-  const monthSel = document.getElementById('reportMonth');
-  const drvSel   = document.getElementById('reportDriver');
+async function openReportModal() {
+  const allBookings = await getBookings();
+  const now         = new Date();
+  const yearSel     = document.getElementById('reportYear');
+  const monthSel    = document.getElementById('reportMonth');
+  const drvSel      = document.getElementById('reportDriver');
 
-  // Years: from earliest booking year or current year, up to current year
   const years = new Set([now.getFullYear()]);
   allBookings.forEach(b => { if (b.tripDate) years.add(parseInt(b.tripDate.split('-')[0], 10)); });
   const sortedYears = [...years].sort((a, b) => b - a);
-  yearSel.innerHTML = sortedYears.map(y => `<option value="${y}">${y}</option>`).join('');
-  yearSel.value = now.getFullYear();
+  yearSel.innerHTML  = sortedYears.map(y => `<option value="${y}">${y}</option>`).join('');
+  yearSel.value      = now.getFullYear();
 
   monthSel.innerHTML = MONTH_NAMES.map((m, i) =>
     `<option value="${i + 1}">${m}</option>`
   ).join('');
   monthSel.value = now.getMonth() + 1;
 
-  // Populate driver dropdown
-  const drivers = getDrivers();
+  const drivers = await getDrivers();
   drvSel.innerHTML = '<option value="">All Drivers</option>' +
     drivers.map(d => `<option value="${d}">${escHtml(d)}</option>`).join('');
 
@@ -341,11 +385,11 @@ function closeReportModal() {
   document.getElementById('reportModal').classList.add('hidden');
 }
 
-function getReportBookings() {
+async function getReportBookings() {
   const month  = parseInt(document.getElementById('reportMonth').value, 10);
   const year   = parseInt(document.getElementById('reportYear').value,  10);
   const driver = document.getElementById('reportDriver').value;
-  const all    = getBookings();
+  const all    = await getBookings();
   return all.filter(b => {
     if (!b.tripDate) return false;
     const [y, m] = b.tripDate.split('-').map(Number);
@@ -355,11 +399,11 @@ function getReportBookings() {
   });
 }
 
-function generateReport() {
-  const month   = parseInt(document.getElementById('reportMonth').value, 10);
-  const year    = parseInt(document.getElementById('reportYear').value,  10);
-  const driver  = document.getElementById('reportDriver').value;
-  const bookings = getReportBookings();
+async function generateReport() {
+  const month    = parseInt(document.getElementById('reportMonth').value, 10);
+  const year     = parseInt(document.getElementById('reportYear').value,  10);
+  const driver   = document.getElementById('reportDriver').value;
+  const bookings = await getReportBookings();
   const container = document.getElementById('reportContent');
 
   if (bookings.length === 0) {
@@ -367,7 +411,6 @@ function generateReport() {
     return;
   }
 
-  // Per-driver breakdown
   const driverMap = {};
   bookings.forEach(b => {
     const key = b.driver || '(Unassigned)';
@@ -388,7 +431,6 @@ function generateReport() {
       <div class="rsum-pill rsum-cancelled"><span class="rsum-val">${cancelled}</span><span class="rsum-lbl">Cancelled</span></div>
     </div>`;
 
-  // Table per driver (or single table if filtering by driver)
   Object.entries(driverMap).sort((a, b) => a[0].localeCompare(b[0])).forEach(([drvName, rows]) => {
     html += `
     <div class="report-driver-section">
@@ -418,39 +460,41 @@ function generateReport() {
   container.innerHTML = html;
 }
 
-function downloadReport() {
-  const month   = parseInt(document.getElementById('reportMonth').value, 10);
-  const year    = parseInt(document.getElementById('reportYear').value,  10);
-  const driver  = document.getElementById('reportDriver').value;
-  const bookings = getReportBookings();
+async function downloadReport() {
+  const month    = parseInt(document.getElementById('reportMonth').value, 10);
+  const year     = parseInt(document.getElementById('reportYear').value,  10);
+  const driver   = document.getElementById('reportDriver').value;
+  const bookings = await getReportBookings();
 
   const rows = [['Booking ID','Name','Phone','Date','Time','Status','Driver','Booked At']];
   bookings.forEach(b => {
     rows.push([
-      b.id || '',
+      b.id       || '',
       b.fullName || '',
-      b.phone || '',
+      b.phone    || '',
       b.tripDate || '',
       b.tripTime || '',
-      b.status || '',
-      b.driver || '',
+      b.status   || '',
+      b.driver   || '',
       b.bookedAt ? new Date(b.bookedAt).toLocaleString() : '',
     ]);
   });
 
-  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  const csv  = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\r\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  const label = driver ? `_${driver.replace(/\s+/g,'_')}` : '';
+  const lbl  = driver ? `_${driver.replace(/\s+/g,'_')}` : '';
   a.href     = url;
-  a.download = `TotahDa_Report_${MONTH_NAMES[month-1]}_${year}${label}.csv`;
+  a.download = `TotahDa_Report_${MONTH_NAMES[month-1]}_${year}${lbl}.csv`;
   a.click();
   URL.revokeObjectURL(url);
   showToast(`📥 Downloaded report for ${MONTH_NAMES[month-1]} ${year}${driver ? ' – ' + driver : ''}`);
 }
 
-/* ---------- Escape HTML ---------- */
+/* ─────────────────────────────────────
+   Escape HTML
+───────────────────────────────────── */
 function escHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -459,6 +503,8 @@ function escHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-/* ---------- Init ---------- */
+/* ─────────────────────────────────────
+   Init
+───────────────────────────────────── */
 renderDriverChips();
 renderBookings();
