@@ -69,6 +69,37 @@ html {
 nav {
   display: flex;
   gap: 8px;
+  align-items: center;
+}
+
+/* Fast Book nav button */
+@keyframes fastBookBlink {
+  0%, 100% { opacity: 1;    box-shadow: 0 0 0 0 rgba(250,204,21,0); }
+  50%       { opacity: 0.7;  box-shadow: 0 0 10px 4px rgba(250,204,21,0.55); }
+}
+
+.nav-fast-book {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #1f2328;
+  border: none;
+  border-radius: 20px;
+  padding: 7px 16px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  animation: fastBookBlink 1.6s ease-in-out infinite;
+  transition: transform 0.12s;
+}
+
+.nav-fast-book:hover {
+  transform: scale(1.06);
+  animation: none;
+  opacity: 1;
+  box-shadow: 0 4px 16px rgba(245,158,11,0.5);
 }
 
 /* ===========================
@@ -1250,39 +1281,12 @@ input.invalid {
 }
 
 /* ===========================
-   AI Chat Bubble & Panel
+   Booking Wizard Chat Panel
 =========================== */
-.chat-bubble {
-  position: fixed;
-  bottom: 28px;
-  right: 28px;
-  z-index: 250;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, #1a3a8f, #2563eb);
-  color: #fff;
-  border: none;
-  border-radius: 30px;
-  padding: 13px 20px 13px 16px;
-  font-size: 0.92rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 6px 24px rgba(37,99,235,0.45);
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-
-.chat-bubble:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 32px rgba(37,99,235,0.55);
-}
-
-.chat-bubble-icon { font-size: 1.2rem; }
-
 .chat-panel {
   position: fixed;
-  bottom: 90px;
-  right: 28px;
+  top: 70px;
+  right: 16px;
   z-index: 250;
   width: 360px;
   max-width: calc(100vw - 32px);

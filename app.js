@@ -44,7 +44,7 @@ const TRANSLATIONS = {
     ph_name:        'e.g. Jane Doe',
     ph_phone:       'e.g. +1 555 000 1234',
     /* chat wizard */
-    chat_bubble_label:  'Book Now',
+    chat_bubble_label:  '⚡ Fast Book',
     chat_title:         'Book a Driver',
     chat_input_ph:      'Type your answer…',
     chat_welcome:       "Hi! 👋 I'll help you book a driver in just a few steps. Let's get started!",
@@ -144,7 +144,7 @@ const TRANSLATIONS = {
     ph_name:        'যেমন: রাহেলা বেগম',
     ph_phone:       'যেমন: +880 1700 000000',
     /* chat wizard */
-    chat_bubble_label:  'বুক করুন',
+    chat_bubble_label:  '⚡ ফাস্ট বুক',
     chat_title:         'ড্রাইভার বুক করুন',
     chat_input_ph:      'আপনার উত্তর লিখুন…',
     chat_welcome:       'হ্যালো! 👋 আমি কয়েকটি প্রশ্নের মাধ্যমে আপনাকে ড্রাইভার বুক করতে সাহায্য করব। শুরু করা যাক!',

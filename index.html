@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TotahDa – Book a Driver</title>
-  <link rel="stylesheet" href="style.css?v=9" />
+  <link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
 
@@ -17,6 +17,7 @@
       </a>
       <nav>
         <a href="index.html" class="nav-link active" data-i18n="nav_book">Book a Driver</a>
+        <button id="chatBubble" class="nav-fast-book" data-i18n="chat_bubble_label">⚡ Fast Book</button>
         <a href="admin.html" class="nav-link" data-i18n="nav_admin">Admin</a>
       </nav>
       <div class="lang-switcher">
@@ -136,13 +137,7 @@
     <p>&copy; 2025 <a href="index.html" class="footer-link">TotahDa</a>. All rights reserved.</p>
   </footer>
 
-  <!-- ===== AI CHAT ===== -->
-  <!-- Floating bubble -->
-  <button id="chatBubble" class="chat-bubble" aria-label="Open booking assistant">
-    <span class="chat-bubble-icon">🚗</span>
-    <span class="chat-bubble-label" data-i18n="chat_bubble_label">Book Now</span>
-  </button>
-
+  <!-- ===== BOOKING WIZARD CHAT ===== -->
   <!-- Chat panel -->
   <div id="chatPanel" class="chat-panel hidden" role="dialog" aria-label="Book a Driver">
     <div class="chat-panel-header">
