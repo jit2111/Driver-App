@@ -63,6 +63,8 @@ if (USE_MONGO) {
     driver:       { type: String, default: '' },
     tripType:     { type: String, default: 'Short Trip' },
     driverChoice: { type: String, default: 'Regular' },
+    needCar:      { type: String, default: 'No' },
+    carSize:      { type: String, default: '' },
     bookedAt:     String,
   }, { versionKey: false });
 
@@ -164,6 +166,8 @@ app.post('/api/bookings', async (req, res) => {
     driver:       req.body.driver       || '',
     tripType:     req.body.tripType     || 'Short Trip',
     driverChoice: req.body.driverChoice || 'Regular',
+    needCar:      req.body.needCar      || 'No',
+    carSize:      req.body.carSize      || '',
     bookedAt:     new Date().toISOString(),
   };
   try {
@@ -180,7 +184,7 @@ app.post('/api/bookings', async (req, res) => {
 
 /* PATCH — partial update */
 app.patch('/api/bookings/:id', async (req, res) => {
-  const allowed = ['fullName', 'phone', 'tripDate', 'tripTime', 'status', 'driver', 'tripType', 'driverChoice'];
+  const allowed = ['fullName', 'phone', 'tripDate', 'tripTime', 'status', 'driver', 'tripType', 'driverChoice', 'needCar', 'carSize'];
   const updates = {};
   allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = req.body[k]; });
 
