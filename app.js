@@ -43,6 +43,12 @@ const TRANSLATIONS = {
     modal_btn:      'Book Another Ride',
     ph_name:        'e.g. Jane Doe',
     ph_phone:       'e.g. +1 555 000 1234',
+    /* chat */
+    chat_bubble_label: 'Book with AI',
+    chat_title:        'AI Booking Assistant',
+    chat_input_ph:     'Type a message…',
+    chat_welcome:      "Hi! 👋 I'm your booking assistant. Tell me when and where you'd like a driver, and I'll fill in the form for you!",
+    chat_form_filled:  '✅ Form filled! Scroll up and click "Confirm Booking".',
     /* admin */
     adm_login_title:       'Admin Portal',
     adm_login_sub:         'Enter your PIN to access the dashboard',
@@ -116,6 +122,12 @@ const TRANSLATIONS = {
     modal_btn:      'আরেকটি যাত্রা বুক করুন',
     ph_name:        'যেমন: রাহেলা বেগম',
     ph_phone:       'যেমন: +880 1700 000000',
+    /* chat */
+    chat_bubble_label: 'AI দিয়ে বুক করুন',
+    chat_title:        'AI বুকিং সহকারী',
+    chat_input_ph:     'একটি বার্তা লিখুন…',
+    chat_welcome:      'হ্যালো! 👋 আমি আপনার বুকিং সহকারী। কখন এবং কোথায় ড্রাইভার চান বলুন, আমি ফর্মটি পূরণ করে দেব!',
+    chat_form_filled:  '✅ ফর্ম পূরণ হয়েছে! উপরে স্ক্রল করুন এবং "বুকিং নিশ্চিত করুন" ক্লিক করুন।',
     /* admin */
     adm_login_title:       'অ্যাডমিন পোর্টাল',
     adm_login_sub:         'ড্যাশবোর্ডে প্রবেশ করতে আপনার পিন দিন',
@@ -423,3 +435,157 @@ function formatDateTime(isoStr) {
   return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) +
     ' ' + d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
 }
+
+/* ─────────────────────────────────────
+   AI Chat  (index.html only)
+───────────────────────────────────── */
+(function initChat() {
+  const bubble   = document.getElementById('chatBubble');
+  const panel    = document.getElementById('chatPanel');
+  const closeBtn = document.getElementById('chatClose');
+  const input    = document.getElementById('chatInput');
+  const sendBtn  = document.getElementById('chatSend');
+  const messagesEl = document.getElementById('chatMessages');
+
+  if (!bubble || !panel) return;   /* not on index.html */
+
+  /* conversation history sent to the API */
+  let history = [];
+  let opened  = false;
+
+  /* ── open / close ── */
+  function openChat() {
+    panel.classList.remove('hidden');
+    opened = true;
+    if (history.length === 0) showWelcome();
+    input.focus();
+  }
+
+  function closeChat() {
+    panel.classList.add('hidden');
+  }
+
+  bubble.addEventListener('click', () => panel.classList.contains('hidden') ? openChat() : closeChat());
+  closeBtn.addEventListener('click', closeChat);
+
+  /* ── welcome message ── */
+  function showWelcome() {
+    const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    appendMsg('bot', t.chat_welcome);
+  }
+
+  /* ── append a message bubble ── */
+  function appendMsg(role, text) {
+    const div = document.createElement('div');
+    div.className = 'chat-msg ' + (role === 'bot' ? 'chat-msg-bot' : 'chat-msg-user');
+    div.textContent = text;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return div;
+  }
+
+  /* ── typing indicator ── */
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'chat-msg chat-msg-bot chat-msg-typing';
+    div.id = 'chatTyping';
+    div.innerHTML = '<span class="chat-dot"></span><span class="chat-dot"></span><span class="chat-dot"></span>';
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function hideTyping() {
+    const el = document.getElementById('chatTyping');
+    if (el) el.remove();
+  }
+
+  /* ── fill booking form from AI action ── */
+  function fillForm(data) {
+    if (data.fullName) {
+      const el = document.getElementById('fullName');
+      if (el) el.value = data.fullName;
+    }
+    if (data.phone) {
+      const el = document.getElementById('phone');
+      if (el) el.value = data.phone;
+    }
+    if (data.tripDate) {
+      const el = document.getElementById('tripDate');
+      if (el) el.value = data.tripDate;
+    }
+    if (data.tripTime) {
+      const el = document.getElementById('tripTime');
+      if (el) el.value = data.tripTime;
+    }
+    if (data.tripType) {
+      const radio = document.querySelector(`input[name="tripType"][value="${data.tripType}"]`);
+      if (radio) radio.checked = true;
+    }
+    if (data.driverChoice) {
+      const radio = document.querySelector(`input[name="driverChoice"][value="${data.driverChoice}"]`);
+      if (radio) radio.checked = true;
+    }
+
+    /* show green notice */
+    const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    const notice = document.createElement('div');
+    notice.className = 'chat-form-filled-notice';
+    notice.textContent = t.chat_form_filled;
+    messagesEl.appendChild(notice);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    /* scroll page to form */
+    const form = document.getElementById('bookNow');
+    if (form) setTimeout(() => form.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
+  }
+
+  /* ── send a message ── */
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+    sendBtn.disabled = true;
+
+    appendMsg('user', text);
+    history.push({ role: 'user', content: text });
+
+    showTyping();
+
+    try {
+      const res = await fetch('/api/chat', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ messages: history, lang: currentLang }),
+      });
+      const data = await res.json();
+      hideTyping();
+
+      const reply = data.reply || '';
+      if (reply) {
+        appendMsg('bot', reply);
+        history.push({ role: 'assistant', content: reply });
+      }
+
+      if (data.action?.type === 'fill_form') {
+        fillForm(data.action.data);
+      }
+    } catch (err) {
+      hideTyping();
+      appendMsg('bot', '⚠️ Network error. Please try again.');
+      console.error(err);
+    }
+
+    sendBtn.disabled = false;
+    input.focus();
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+
+  /* re-show welcome in correct language when language changes */
+  const _origApplyLang = applyLanguage;
+  applyLanguage = function(lang) {
+    _origApplyLang(lang);
+    /* if chat was never opened just leave it; welcome shown on first open */
+  };
+})();

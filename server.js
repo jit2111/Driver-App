@@ -426,6 +426,104 @@ app.post('/api/sms', async (req, res) => {
 });
 
 /* ============================================================
+   AI CHAT  /api/chat
+   ============================================================ */
+
+/**
+ * POST /api/chat
+ * Body: { messages: [{role, content}, …], lang?: 'en'|'bn' }
+ *
+ * Proxies the conversation to OpenAI Chat Completions (gpt-4o-mini).
+ * Requires env var: OPENAI_API_KEY
+ *
+ * Returns: { reply: string, action?: { type:'fill_form', data:{…} } }
+ */
+app.post('/api/chat', async (req, res) => {
+  const { messages = [], lang = 'en' } = req.body || {};
+  if (!Array.isArray(messages) || messages.length === 0)
+    return res.status(400).json({ error: 'messages array is required' });
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return res.json({
+      reply: lang === 'bn'
+        ? 'দুঃখিত, এআই চ্যাট এই মুহূর্তে সংযুক্ত নেই। অনুগ্রহ করে সরাসরি ফর্মটি পূরণ করুন।'
+        : 'Sorry, AI chat is not configured right now. Please fill in the booking form directly.',
+    });
+  }
+
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+  const systemPrompt = lang === 'bn'
+    ? `আপনি TotahDa-র একজন বন্ধুত্বপূর্ণ বুকিং সহকারী। আপনার কাজ হলো ব্যবহারকারীকে একটি ড্রাইভার বুকিং সম্পূর্ণ করতে সাহায্য করা।
+আজকের তারিখ: ${today}।
+আপনাকে ধাপে ধাপে নিম্নলিখিত তথ্যগুলো সংগ্রহ করতে হবে: পূর্ণ নাম, ফোন নম্বর, ট্রিপের তারিখ (YYYY-MM-DD), সময় (HH:MM, 24-ঘণ্টা), ট্রিপের ধরন (Short Trip অথবা Long Trip), ড্রাইভার পছন্দ (Regular অথবা Any)।
+যখন আপনার কাছে সব তথ্য থাকবে, তখন আপনার উত্তরে শুধুমাত্র এই JSON ব্লকটি অন্তর্ভুক্ত করুন (অন্য কোনো টেক্সটের সাথে মিশিয়ে নয়):
+ACTION:{"type":"fill_form","data":{"fullName":"...","phone":"...","tripDate":"YYYY-MM-DD","tripTime":"HH:MM","tripType":"Short Trip","driverChoice":"Regular"}}
+এর পরে ব্যবহারকারীকে জানান যে ফর্মটি পূরণ হয়ে গেছে এবং তারা এখন বুকিং নিশ্চিত করতে পারবেন।
+সংক্ষিপ্ত ও বন্ধুত্বপূর্ণ ভাষায় কথা বলুন। শুধুমাত্র বুকিং সংক্রান্ত বিষয়ে সাহায্য করুন।`
+    : `You are a friendly booking assistant for TotahDa, a driver booking service.
+Today's date is ${today}.
+Your job is to help the user complete a driver booking by collecting: full name, phone number, trip date (YYYY-MM-DD), trip time (HH:MM, 24-hour), trip type (Short Trip or Long Trip), driver choice (Regular or Any).
+Ask for missing details one or two at a time. Be concise and friendly.
+When you have all the information, include EXACTLY this JSON block in your reply (do not embed it in prose):
+ACTION:{"type":"fill_form","data":{"fullName":"...","phone":"...","tripDate":"YYYY-MM-DD","tripTime":"HH:MM","tripType":"Short Trip","driverChoice":"Regular"}}
+Then tell the user the form is filled and they can click Confirm Booking.
+Only help with booking-related topics.`;
+
+  const payload = JSON.stringify({
+    model: 'gpt-4o-mini',
+    messages: [{ role: 'system', content: systemPrompt }, ...messages],
+    max_tokens: 300,
+    temperature: 0.4,
+  });
+
+  const options = {
+    hostname: 'api.openai.com',
+    path:     '/v1/chat/completions',
+    method:   'POST',
+    headers:  {
+      'Content-Type':   'application/json',
+      'Content-Length': Buffer.byteLength(payload),
+      'Authorization':  `Bearer ${apiKey}`,
+    },
+  };
+
+  new Promise((resolve, reject) => {
+    const req2 = https.request(options, r2 => {
+      let raw = '';
+      r2.on('data', chunk => { raw += chunk; });
+      r2.on('end',  () => resolve({ statusCode: r2.statusCode, body: raw }));
+    });
+    req2.on('error', reject);
+    req2.write(payload);
+    req2.end();
+  })
+  .then(({ statusCode, body: raw }) => {
+    const data = JSON.parse(raw);
+    if (statusCode !== 200)
+      return res.status(502).json({ error: data.error?.message || 'OpenAI error' });
+
+    let reply = data.choices?.[0]?.message?.content?.trim() || '';
+
+    /* Extract ACTION block if present */
+    const actionMatch = reply.match(/ACTION:(\{.*\})/s);
+    if (actionMatch) {
+      try {
+        const action = JSON.parse(actionMatch[1]);
+        reply = reply.replace(/ACTION:\{.*\}/s, '').trim();
+        return res.json({ reply, action });
+      } catch { /* malformed JSON — just return reply as-is */ }
+    }
+    res.json({ reply });
+  })
+  .catch(err => {
+    console.error('  ❌ OpenAI error:', err.message);
+    res.status(500).json({ error: err.message });
+  });
+});
+
+/* ============================================================
    Start
    ============================================================ */
 app.listen(PORT, async () => {

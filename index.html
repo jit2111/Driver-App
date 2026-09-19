@@ -136,6 +136,32 @@
     <p>&copy; 2025 <a href="index.html" class="footer-link">TotahDa</a>. All rights reserved.</p>
   </footer>
 
+  <!-- ===== AI CHAT ===== -->
+  <!-- Floating bubble -->
+  <button id="chatBubble" class="chat-bubble" aria-label="Open booking assistant">
+    <span class="chat-bubble-icon">🤖</span>
+    <span class="chat-bubble-label" data-i18n="chat_bubble_label">Book with AI</span>
+  </button>
+
+  <!-- Chat panel -->
+  <div id="chatPanel" class="chat-panel hidden" role="dialog" aria-label="AI Booking Assistant">
+    <div class="chat-panel-header">
+      <div class="chat-panel-title">
+        <span>🤖</span>
+        <span data-i18n="chat_title">AI Booking Assistant</span>
+      </div>
+      <button id="chatClose" class="chat-close" aria-label="Close">&times;</button>
+    </div>
+    <div id="chatMessages" class="chat-messages"></div>
+    <div class="chat-input-row">
+      <input id="chatInput" class="chat-input" type="text"
+        placeholder="Type a message…" data-i18n-placeholder="chat_input_ph" autocomplete="off" />
+      <button id="chatSend" class="chat-send-btn" aria-label="Send">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
   <!-- Success Modal -->
   <div id="successModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
@@ -146,6 +172,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
