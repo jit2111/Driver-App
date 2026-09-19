@@ -462,18 +462,19 @@ input.invalid {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
-  padding: 13px;
+  padding: 14px;
   background: linear-gradient(135deg, #dc2626, #ef4444);
   color: #fff;
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 700;
   border-radius: 12px;
   text-decoration: none;
-  letter-spacing: 0.2px;
+  white-space: nowrap;
+  margin-top: 4px;
   animation: urgentPulse 1.4s ease-in-out infinite;
-  transition: background 0.15s, transform 0.1s;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
 }
 
 .btn-urgent:hover {
