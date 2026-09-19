@@ -557,26 +557,33 @@ function formatDateTime(isoStr) {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ messages: history, lang: currentLang }),
       });
-      const data = await res.json();
+
+      let data;
+      try { data = await res.json(); }
+      catch { data = {}; }
+
       hideTyping();
 
-      const reply = data.reply || '';
-      if (reply) {
-        appendMsg('bot', reply);
-        history.push({ role: 'assistant', content: reply });
-      }
-
-      if (data.action?.type === 'fill_form') {
-        fillForm(data.action.data);
+      if (data.error) {
+        appendMsg('bot', '⚠️ ' + data.error);
+      } else {
+        const reply = data.reply || '';
+        if (reply) {
+          appendMsg('bot', reply);
+          history.push({ role: 'assistant', content: reply });
+        }
+        if (data.action?.type === 'fill_form') {
+          fillForm(data.action.data);
+        }
       }
     } catch (err) {
       hideTyping();
-      appendMsg('bot', '⚠️ Network error. Please try again.');
-      console.error(err);
+      appendMsg('bot', '⚠️ Could not reach the server. Please try again.');
+      console.error('chat error:', err);
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
     }
-
-    sendBtn.disabled = false;
-    input.focus();
   }
 
   sendBtn.addEventListener('click', sendMessage);
