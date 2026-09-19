@@ -9,6 +9,111 @@
        back to localStorage so the static demo still works.
 =========================== */
 
+/* ─────────────────────────────────────
+   i18n — Language support (EN / BN)
+───────────────────────────────────── */
+const TRANSLATIONS = {
+  en: {
+    nav_book:       'Book a Driver',
+    nav_admin:      'Admin',
+    hero_badge:     '🚗 Fast & Reliable',
+    hero_title:     'Your Personal Driver,<br/>On Demand',
+    hero_sub:       'Book a professional driver in seconds. Safe, punctual, and always smiling.',
+    feat_verified:  'Verified Drivers',
+    feat_instant:   'Instant Booking',
+    feat_sms:       'SMS Confirmation',
+    book_title:     'Book Your Ride',
+    book_sub:       "Fill in your details below and we'll get your driver ready.",
+    perk_247:       '🕐 Available 24/7',
+    perk_safe:      '🛡️ Safety guaranteed',
+    perk_sms:       '💬 SMS updates',
+    perk_rated:     '⭐ Top-rated drivers',
+    lbl_name:       'Full Name',
+    lbl_phone:      'Phone Number',
+    lbl_date:       'Date',
+    lbl_time:       'Time',
+    lbl_trip_type:  'Trip Type',
+    lbl_driver_choice: 'Driver Choice',
+    trip_short:     '🏙️ Short Trip',
+    trip_long:      '🛣️ Long Trip',
+    driver_regular: '⭐ Regular',
+    driver_any:     '🎲 Any',
+    btn_confirm:    '🚗 Confirm Booking',
+    modal_title:    'Booking Confirmed! 🎉',
+    modal_btn:      'Book Another Ride',
+    ph_name:        'e.g. Jane Doe',
+    ph_phone:       'e.g. +1 555 000 1234',
+  },
+  bn: {
+    nav_book:       'ড্রাইভার বুক করুন',
+    nav_admin:      'অ্যাডমিন',
+    hero_badge:     '🚗 দ্রুত ও নির্ভরযোগ্য',
+    hero_title:     'আপনার ব্যক্তিগত ড্রাইভার,<br/>চাহিদামতো',
+    hero_sub:       'মাত্র কয়েক সেকেন্ডে একজন পেশাদার ড্রাইভার বুক করুন। নিরাপদ, সময়মতো এবং সর্বদা হাসিমাখা।',
+    feat_verified:  'যাচাইকৃত ড্রাইভার',
+    feat_instant:   'তাৎক্ষণিক বুকিং',
+    feat_sms:       'এসএমএস নিশ্চিতকরণ',
+    book_title:     'আপনার যাত্রা বুক করুন',
+    book_sub:       'নিচে আপনার তথ্য পূরণ করুন, আমরা আপনার ড্রাইভার প্রস্তুত করব।',
+    perk_247:       '🕐 ২৪/৭ উপলব্ধ',
+    perk_safe:      '🛡️ নিরাপত্তা নিশ্চিত',
+    perk_sms:       '💬 এসএমএস আপডেট',
+    perk_rated:     '⭐ শীর্ষ-রেটেড ড্রাইভার',
+    lbl_name:       'পূর্ণ নাম',
+    lbl_phone:      'ফোন নম্বর',
+    lbl_date:       'তারিখ',
+    lbl_time:       'সময়',
+    lbl_trip_type:  'ট্রিপের ধরন',
+    lbl_driver_choice: 'ড্রাইভার পছন্দ',
+    trip_short:     '🏙️ ছোট ট্রিপ',
+    trip_long:      '🛣️ লম্বা ট্রিপ',
+    driver_regular: '⭐ নিয়মিত',
+    driver_any:     '🎲 যেকোনো',
+    btn_confirm:    '🚗 বুকিং নিশ্চিত করুন',
+    modal_title:    'বুকিং নিশ্চিত হয়েছে! 🎉',
+    modal_btn:      'আরেকটি যাত্রা বুক করুন',
+    ph_name:        'যেমন: রাহেলা বেগম',
+    ph_phone:       'যেমন: +880 1700 000000',
+  },
+};
+
+let currentLang = localStorage.getItem('totahda_lang') || 'en';
+
+function applyLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem('totahda_lang', lang);
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
+
+  /* text nodes */
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (t[key] !== undefined) el.innerHTML = t[key];
+  });
+
+  /* placeholder attributes */
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (t[key] !== undefined) el.placeholder = t[key];
+  });
+
+  /* keep the select in sync */
+  const sel = document.getElementById('langSelect');
+  if (sel && sel.value !== lang) sel.value = lang;
+
+  /* update html lang attribute */
+  document.documentElement.lang = lang === 'bn' ? 'bn' : 'en';
+}
+
+/* Wire up the dropdown once DOM is ready */
+document.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('langSelect');
+  if (sel) {
+    sel.value = currentLang;
+    sel.addEventListener('change', () => applyLanguage(sel.value));
+  }
+  applyLanguage(currentLang);
+});
+
 const API_BASE    = '/api';
 const STORAGE_KEY = 'totahda_bookings';
 

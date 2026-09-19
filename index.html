@@ -16,9 +16,15 @@
         <span>TotahDa</span>
       </a>
       <nav>
-        <a href="index.html" class="nav-link active">Book a Driver</a>
-        <a href="admin.html" class="nav-link">Admin</a>
+        <a href="index.html" class="nav-link active" data-i18n="nav_book">Book a Driver</a>
+        <a href="admin.html" class="nav-link" data-i18n="nav_admin">Admin</a>
       </nav>
+      <div class="lang-switcher">
+        <select id="langSelect" aria-label="Language">
+          <option value="en">🌐 English</option>
+          <option value="bn">🌐 বাংলা</option>
+        </select>
+      </div>
     </div>
   </header>
 
@@ -26,13 +32,13 @@
   <section class="hero">
     <div class="hero-inner">
       <div class="hero-text">
-        <span class="hero-badge">🚗 Fast &amp; Reliable</span>
-        <h1 class="hero-title">Your Personal Driver,<br/>On Demand</h1>
-        <p class="hero-sub">Book a professional driver in seconds. Safe, punctual, and always smiling.</p>
+        <span class="hero-badge" data-i18n="hero_badge">🚗 Fast &amp; Reliable</span>
+        <h1 class="hero-title" data-i18n="hero_title">Your Personal Driver,<br/>On Demand</h1>
+        <p class="hero-sub" data-i18n="hero_sub">Book a professional driver in seconds. Safe, punctual, and always smiling.</p>
         <div class="hero-features">
-          <div class="hf"><span class="hf-icon">✅</span> Verified Drivers</div>
-          <div class="hf"><span class="hf-icon">⚡</span> Instant Booking</div>
-          <div class="hf"><span class="hf-icon">📱</span> SMS Confirmation</div>
+          <div class="hf"><span class="hf-icon">✅</span> <span data-i18n="feat_verified">Verified Drivers</span></div>
+          <div class="hf"><span class="hf-icon">⚡</span> <span data-i18n="feat_instant">Instant Booking</span></div>
+          <div class="hf"><span class="hf-icon">📱</span> <span data-i18n="feat_sms">SMS Confirmation</span></div>
         </div>
       </div>
       <div class="hero-img-wrap">
@@ -46,13 +52,13 @@
     <div class="booking-wrapper">
 
       <div class="booking-left">
-        <h2 class="section-title">Book Your Ride</h2>
-        <p class="section-sub">Fill in your details below and we'll get your driver ready.</p>
+        <h2 class="section-title" data-i18n="book_title">Book Your Ride</h2>
+        <p class="section-sub" data-i18n="book_sub">Fill in your details below and we'll get your driver ready.</p>
         <ul class="perks-list">
-          <li>🕐 Available 24/7</li>
-          <li>🛡️ Safety guaranteed</li>
-          <li>💬 SMS updates</li>
-          <li>⭐ Top-rated drivers</li>
+          <li data-i18n="perk_247">🕐 Available 24/7</li>
+          <li data-i18n="perk_safe">🛡️ Safety guaranteed</li>
+          <li data-i18n="perk_sms">💬 SMS updates</li>
+          <li data-i18n="perk_rated">⭐ Top-rated drivers</li>
         </ul>
       </div>
 
@@ -60,27 +66,27 @@
         <form id="bookingForm" class="booking-form" novalidate>
 
           <div class="form-group">
-            <label for="fullName">Full Name</label>
+            <label for="fullName" data-i18n="lbl_name">Full Name</label>
             <input type="text" id="fullName" name="fullName"
-              placeholder="e.g. Jane Doe" autocomplete="name" required />
+              placeholder="e.g. Jane Doe" data-i18n-placeholder="ph_name" autocomplete="name" required />
             <span class="field-error" id="err-fullName"></span>
           </div>
 
           <div class="form-group">
-            <label for="phone">Phone Number</label>
+            <label for="phone" data-i18n="lbl_phone">Phone Number</label>
             <input type="tel" id="phone" name="phone"
-              placeholder="e.g. +1 555 000 1234" autocomplete="tel" required />
+              placeholder="e.g. +1 555 000 1234" data-i18n-placeholder="ph_phone" autocomplete="tel" required />
             <span class="field-error" id="err-phone"></span>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="tripDate">Date</label>
+              <label for="tripDate" data-i18n="lbl_date">Date</label>
               <input type="date" id="tripDate" name="tripDate" required />
               <span class="field-error" id="err-tripDate"></span>
             </div>
             <div class="form-group">
-              <label for="tripTime">Time</label>
+              <label for="tripTime" data-i18n="lbl_time">Time</label>
               <input type="time" id="tripTime" name="tripTime" required />
               <span class="field-error" id="err-tripTime"></span>
             </div>
@@ -88,34 +94,34 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label>Trip Type</label>
+              <label data-i18n="lbl_trip_type">Trip Type</label>
               <div class="radio-pill-group">
                 <label class="radio-pill">
                   <input type="radio" name="tripType" value="Short Trip" checked />
-                  <span>🏙️ Short Trip</span>
+                  <span data-i18n="trip_short">🏙️ Short Trip</span>
                 </label>
                 <label class="radio-pill">
                   <input type="radio" name="tripType" value="Long Trip" />
-                  <span>🛣️ Long Trip</span>
+                  <span data-i18n="trip_long">🛣️ Long Trip</span>
                 </label>
               </div>
             </div>
             <div class="form-group">
-              <label>Driver Choice</label>
+              <label data-i18n="lbl_driver_choice">Driver Choice</label>
               <div class="radio-pill-group">
                 <label class="radio-pill">
                   <input type="radio" name="driverChoice" value="Regular" checked />
-                  <span>⭐ Regular</span>
+                  <span data-i18n="driver_regular">⭐ Regular</span>
                 </label>
                 <label class="radio-pill">
                   <input type="radio" name="driverChoice" value="Any" />
-                  <span>🎲 Any</span>
+                  <span data-i18n="driver_any">🎲 Any</span>
                 </label>
               </div>
             </div>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-full">
+          <button type="submit" class="btn btn-primary btn-full" data-i18n="btn_confirm">
             🚗 Confirm Booking
           </button>
         </form>
@@ -134,12 +140,12 @@
   <div id="successModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
       <img src="images/driver.png" alt="Driver" class="modal-driver-img" />
-      <h2>Booking Confirmed! 🎉</h2>
+      <h2 data-i18n="modal_title">Booking Confirmed! 🎉</h2>
       <p id="modalMessage"></p>
-      <button class="btn btn-primary" onclick="closeModal()">Book Another Ride</button>
+      <button class="btn btn-primary" data-i18n="modal_btn" onclick="closeModal()">Book Another Ride</button>
     </div>
   </div>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
