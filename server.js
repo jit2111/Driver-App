@@ -489,38 +489,43 @@ Only help with booking-related topics.`;
     },
   };
 
-  new Promise((resolve, reject) => {
-    const req2 = https.request(options, r2 => {
-      let raw = '';
-      r2.on('data', chunk => { raw += chunk; });
-      r2.on('end',  () => resolve({ statusCode: r2.statusCode, body: raw }));
+  try {
+    const { statusCode, body: raw } = await new Promise((resolve, reject) => {
+      const req2 = https.request(options, r2 => {
+        let raw = '';
+        r2.on('data', chunk => { raw += chunk; });
+        r2.on('end',  () => resolve({ statusCode: r2.statusCode, body: raw }));
+      });
+      req2.on('error', reject);
+      req2.write(payload);
+      req2.end();
     });
-    req2.on('error', reject);
-    req2.write(payload);
-    req2.end();
-  })
-  .then(({ statusCode, body: raw }) => {
-    const data = JSON.parse(raw);
-    if (statusCode !== 200)
+
+    let data;
+    try { data = JSON.parse(raw); }
+    catch { return res.status(502).json({ error: 'Invalid response from OpenAI' }); }
+
+    if (statusCode !== 200) {
+      console.error('  ❌ OpenAI HTTP', statusCode, data.error?.message);
       return res.status(502).json({ error: data.error?.message || 'OpenAI error' });
+    }
 
     let reply = data.choices?.[0]?.message?.content?.trim() || '';
 
     /* Extract ACTION block if present */
-    const actionMatch = reply.match(/ACTION:(\{.*\})/s);
+    const actionMatch = reply.match(/ACTION:(\{.*?\})\s*$/ms);
     if (actionMatch) {
       try {
         const action = JSON.parse(actionMatch[1]);
-        reply = reply.replace(/ACTION:\{.*\}/s, '').trim();
+        reply = reply.replace(/ACTION:\{.*?\}\s*$/ms, '').trim();
         return res.json({ reply, action });
-      } catch { /* malformed JSON — just return reply as-is */ }
+      } catch { /* malformed JSON — fall through and return plain reply */ }
     }
-    res.json({ reply });
-  })
-  .catch(err => {
+    return res.json({ reply });
+  } catch (err) {
     console.error('  ❌ OpenAI error:', err.message);
-    res.status(500).json({ error: err.message });
-  });
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 /* ============================================================
