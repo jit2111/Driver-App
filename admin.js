@@ -217,13 +217,17 @@ async function renderBookings(filter = '') {
          }`
       : `<span style="color:#57606a;font-size:0.8rem">${escHtml(b.driver || '—')}</span>`;
 
+    const carBadge = b.needCar === 'Yes'
+      ? '<span class="car-size-badge car-size-' + (b.carSize||'').toLowerCase() + '"  style="margin-left:5px;">&#x1F697; ' + escHtml(b.carSize||'Car') + '</span>'
+      : '';
+
     const tr = document.createElement('tr');
     if (isClash) tr.classList.add('row-clash');
     if (isToday) tr.classList.add('row-today');
 
     tr.innerHTML = `
       <td style="color:#57606a;font-size:0.8rem">${i + 1}</td>
-      <td><strong>${escHtml(b.fullName)}</strong></td>
+      <td><strong>${escHtml(b.fullName)}</strong>${carBadge}</td>
       <td>${escHtml(b.phone)}</td>
       <td>
         ${isToday ? '<span class="today-badge">Today</span> ' : ''}
@@ -244,11 +248,6 @@ async function renderBookings(filter = '') {
               `<option value="${c}" ${(b.driverChoice||'Regular')===c?'selected':''}>${c}</option>`
             ).join('')}
         </select>
-      </td>
-      <td style="white-space:nowrap">
-        ${b.needCar === 'Yes'
-          ? `<span class="car-size-badge car-size-${(b.carSize||'').toLowerCase()}">🚗 ${escHtml(b.carSize||'')}</span>`
-          : `<span style="color:#57606a;font-size:0.8rem">—</span>`}
       </td>
       <td>
         <select class="status-select" onchange="changeStatus('${b.id}', this.value)">
