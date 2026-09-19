@@ -16,9 +16,15 @@
         <span>TotahDa</span>
       </a>
       <nav>
-        <a href="index.html" class="nav-link">Book a Driver</a>
-        <a href="admin.html" class="nav-link active">Admin</a>
+        <a href="index.html" class="nav-link" data-i18n="nav_book">Book a Driver</a>
+        <a href="admin.html" class="nav-link active" data-i18n="nav_admin">Admin</a>
       </nav>
+      <div class="lang-switcher">
+        <select id="langSelect" aria-label="Language">
+          <option value="en">🌐 English</option>
+          <option value="bn">🌐 বাংলা</option>
+        </select>
+      </div>
     </div>
   </header>
 
@@ -26,14 +32,14 @@
   <div id="adminLoginScreen" class="login-screen">
     <div class="login-card">
       <img src="images/driver.png" alt="TotahDa Driver" class="login-driver-img" />
-      <h2 class="login-title">Admin Portal</h2>
-      <p class="login-sub">Enter your PIN to access the dashboard</p>
+      <h2 class="login-title" data-i18n="adm_login_title">Admin Portal</h2>
+      <p class="login-sub" data-i18n="adm_login_sub">Enter your PIN to access the dashboard</p>
       <div class="form-group">
-        <label for="adminPin">Admin PIN</label>
+        <label for="adminPin" data-i18n="adm_pin_lbl">Admin PIN</label>
         <input type="password" id="adminPin" placeholder="••••" class="pin-input" />
         <span class="field-error" id="err-adminPin"></span>
       </div>
-      <button class="btn btn-primary btn-full" style="margin-top:20px;" onclick="adminLogin()">
+      <button class="btn btn-primary btn-full" style="margin-top:20px;" data-i18n="adm_login_btn" onclick="adminLogin()">
         🔓 Login to Dashboard
       </button>
     </div>
@@ -46,10 +52,10 @@
     <div class="card admin-card" style="margin-bottom:24px;">
       <div class="driver-mgmt-header">
         <div>
-          <h2 class="card-title">🚗 Driver Management</h2>
-          <p class="card-subtitle">Add, rename or remove drivers available for assignment.</p>
+          <h2 class="card-title" data-i18n="adm_drv_mgmt_title">🚗 Driver Management</h2>
+          <p class="card-subtitle" data-i18n="adm_drv_mgmt_sub">Add, rename or remove drivers available for assignment.</p>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="openAddDriverModal()">＋ Add Driver</button>
+        <button class="btn btn-primary btn-sm" data-i18n="adm_add_driver" onclick="openAddDriverModal()">＋ Add Driver</button>
       </div>
       <div class="driver-chips" id="driverChips"></div>
     </div>
@@ -60,16 +66,15 @@
         <div class="admin-title-row">
           <img src="images/driver.png" alt="" class="admin-avatar" />
           <div>
-            <h1 class="card-title">All Bookings</h1>
+            <h1 class="card-title" data-i18n="adm_all_bookings">All Bookings</h1>
             <p class="card-subtitle" id="bookingCount">Loading…</p>
           </div>
         </div>
         <div class="admin-actions">
           <input type="text" id="searchInput" class="search-input"
-            placeholder="Search by name or phone…" oninput="filterBookings()" />
-          <button class="btn btn-outline-report" onclick="openReportModal()">📊 Report</button>
-
-          <button class="btn btn-danger" onclick="clearAllBookings()">Clear All</button>
+            placeholder="Search by name or phone…" data-i18n-placeholder="adm_search_ph" oninput="filterBookings()" />
+          <button class="btn btn-outline-report" data-i18n="adm_report_btn" onclick="openReportModal()">📊 Report</button>
+          <button class="btn btn-danger" data-i18n="adm_clear_btn" onclick="clearAllBookings()">Clear All</button>
         </div>
       </div>
 
@@ -82,23 +87,23 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Trip</th>
-              <th>Choice</th>
-              <th>Status</th>
-              <th>Driver</th>
-              <th>Booked At</th>
-              <th>Action</th>
+              <th data-i18n="adm_th_name">Name</th>
+              <th data-i18n="adm_th_phone">Phone</th>
+              <th data-i18n="adm_th_date">Date</th>
+              <th data-i18n="adm_th_time">Time</th>
+              <th data-i18n="adm_th_trip">Trip</th>
+              <th data-i18n="adm_th_choice">Choice</th>
+              <th data-i18n="adm_th_status">Status</th>
+              <th data-i18n="adm_th_driver">Driver</th>
+              <th data-i18n="adm_th_booked_at">Booked At</th>
+              <th data-i18n="adm_th_action">Action</th>
             </tr>
           </thead>
           <tbody id="bookingsBody"></tbody>
         </table>
         <div id="emptyState" class="empty-state hidden">
           <img src="images/driver.png" alt="" class="empty-driver-img" />
-          <p>No bookings yet. Waiting for riders!</p>
+          <p data-i18n="adm_empty">No bookings yet. Waiting for riders!</p>
         </div>
       </div>
     </div>
@@ -111,7 +116,7 @@
   <div id="smsModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
       <div class="modal-icon" id="smsModalIcon">📱</div>
-      <h2 id="smsModalTitle">Sending SMS…</h2>
+      <h2 id="smsModalTitle" data-i18n="adm_sms_sending">Sending SMS…</h2>
       <p id="smsModalBody" style="white-space:pre-line;margin:8px 0 12px;color:#57606a;font-size:0.9rem;"></p>
 
       <!-- shown only in "preview" (unconfigured) state -->
@@ -133,11 +138,11 @@
   <div id="deleteModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
       <div class="modal-icon">⚠️</div>
-      <h2>Delete Booking?</h2>
-      <p>This action cannot be undone.</p>
+      <h2 data-i18n="adm_del_title">Delete Booking?</h2>
+      <p data-i18n="adm_del_body">This action cannot be undone.</p>
       <div class="modal-actions">
-        <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-        <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+        <button class="btn btn-secondary" data-i18n="adm_cancel" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn btn-danger" data-i18n="adm_delete" onclick="confirmDelete()">Delete</button>
       </div>
     </div>
   </div>
@@ -146,19 +151,19 @@
   <div id="driverModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
       <div class="modal-icon">🚗</div>
-      <h2 id="driverModalTitle">Add Driver</h2>
+      <h2 id="driverModalTitle" data-i18n="adm_drv_modal_title">Add Driver</h2>
       <div class="form-group" style="text-align:left;margin-bottom:8px;">
-        <label for="driverNameInput">Driver Name</label>
-        <input type="text" id="driverNameInput" placeholder="e.g. Rajan" autocomplete="off" />
+        <label for="driverNameInput" data-i18n="adm_drv_name_lbl">Driver Name</label>
+        <input type="text" id="driverNameInput" placeholder="e.g. Rajan" data-i18n-placeholder="adm_drv_name_ph" autocomplete="off" />
         <span class="field-error" id="err-driverName"></span>
       </div>
       <div class="form-group" style="text-align:left;margin-bottom:8px;">
-        <label for="driverPhoneInput">Phone Number <span style="font-weight:400;color:#57606a;">(for direct call)</span></label>
-        <input type="tel" id="driverPhoneInput" placeholder="e.g. +91 98765 43210" autocomplete="off" />
+        <label for="driverPhoneInput" data-i18n="adm_drv_phone_lbl">Phone Number <span style="font-weight:400;color:#57606a;" data-i18n="adm_drv_phone_hint">(for direct call)</span></label>
+        <input type="tel" id="driverPhoneInput" placeholder="e.g. +91 98765 43210" data-i18n-placeholder="adm_drv_phone_ph" autocomplete="off" />
       </div>
       <div class="modal-actions" style="margin-top:20px;">
-        <button class="btn btn-secondary" onclick="closeDriverModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="saveDriver()">Save</button>
+        <button class="btn btn-secondary" data-i18n="adm_cancel" onclick="closeDriverModal()">Cancel</button>
+        <button class="btn btn-primary" data-i18n="adm_save" onclick="saveDriver()">Save</button>
       </div>
     </div>
   </div>
@@ -166,32 +171,32 @@
   <!-- Monthly Report modal -->
   <div id="reportModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box report-modal-box">
-      <h2 class="report-title">📊 Monthly Booking Report</h2>
+      <h2 class="report-title" data-i18n="adm_report_title">📊 Monthly Booking Report</h2>
       <div class="report-controls">
         <div class="form-group">
-          <label for="reportMonth">Month</label>
+          <label for="reportMonth" data-i18n="adm_report_month">Month</label>
           <select id="reportMonth" class="status-select" onchange="generateReport()"></select>
         </div>
         <div class="form-group">
-          <label for="reportYear">Year</label>
+          <label for="reportYear" data-i18n="adm_report_year">Year</label>
           <select id="reportYear" class="status-select" onchange="generateReport()"></select>
         </div>
         <div class="form-group">
-          <label for="reportDriver">Driver</label>
+          <label for="reportDriver" data-i18n="adm_report_driver">Driver</label>
           <select id="reportDriver" class="status-select driver-select" onchange="generateReport()">
-            <option value="">All Drivers</option>
+            <option value="" data-i18n="adm_report_all_drivers">All Drivers</option>
           </select>
         </div>
       </div>
       <div id="reportContent" class="report-content"></div>
       <div class="modal-actions" style="margin-top:20px;flex-wrap:wrap;">
-        <button class="btn btn-secondary" onclick="closeReportModal()">Close</button>
-        <button class="btn btn-primary" onclick="downloadReport()">⬇ Download CSV</button>
+        <button class="btn btn-secondary" data-i18n="adm_close" onclick="closeReportModal()">Close</button>
+        <button class="btn btn-primary" data-i18n="adm_download_csv" onclick="downloadReport()">⬇ Download CSV</button>
       </div>
     </div>
   </div>
 
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=8"></script>
   <script src="admin.js?v=9"></script>
   <script>
     if (sessionStorage.getItem('totahda_admin') === '1') {
