@@ -438,6 +438,63 @@ function validateForm() {
   return valid;
 }
 
+
+/* ─────────────────────────────────────
+   Urgent Call  (index.html only)
+───────────────────────────────────── */
+(function initUrgentCall() {
+  const btn = document.getElementById('urgentCallBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = '📞 Calling…';
+
+    try {
+      const res  = await fetch('/api/call', { method: 'POST' });
+      const data = await res.json();
+
+      if (data.status === 'calling') {
+        showCallToast('📞 Call placed! TotahDa will answer shortly.', 'success');
+      } else if (data.status === 'unconfigured') {
+        /* Twilio not set up — fall back to device dialer */
+        window.location.href = 'tel:+919432670586';
+        showCallToast('📞 Opening your dialler…', 'info');
+      } else {
+        showCallToast('⚠️ ' + (data.error || 'Could not place call. Try again.'), 'error');
+      }
+    } catch (err) {
+      /* Network failure — fall back to device dialler */
+      window.location.href = 'tel:+919432670586';
+      showCallToast('📞 Opening your dialler…', 'info');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  });
+
+  function showCallToast(msg, type) {
+    /* reuse existing sms-toast element if on same page, else create one */
+    let toast = document.getElementById('callToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'callToast';
+      toast.className = 'sms-toast hidden';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.background =
+      type === 'success' ? 'linear-gradient(135deg,#166534,#16a34a)'  :
+      type === 'error'   ? 'linear-gradient(135deg,#991b1b,#dc2626)'  :
+                           'linear-gradient(135deg,#0f1c3f,#1a3a8f)';
+    toast.classList.remove('hidden');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.add('hidden'), 4000);
+  }
+})();
+
+
 /* ─────────────────────────────────────
    Modal
 ───────────────────────────────────── */

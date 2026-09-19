@@ -426,6 +426,79 @@ app.post('/api/sms', async (req, res) => {
 });
 
 /* ============================================================
+   VOICE CALL  /api/call
+   ============================================================ */
+
+/**
+ * POST /api/call
+ * Body: (none required)
+ *
+ * Places an outbound call to TWILIO_TO (TotahDa's number) from TWILIO_FROM
+ * using Twilio's Calls REST API.  When answered, reads a short TwiML message.
+ *
+ * Requires env vars:
+ *   TWILIO_ACCOUNT_SID  — Twilio Account SID
+ *   TWILIO_AUTH_TOKEN   — Twilio Auth Token
+ *   TWILIO_FROM         — Twilio "From" phone number  (e.g. +1415XXXXXXX)
+ *   TWILIO_TO           — TotahDa destination number  (e.g. +919432670586)
+ */
+app.post('/api/call', async (req, res) => {
+  const sid   = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  const from  = process.env.TWILIO_FROM;
+  const to    = process.env.TWILIO_TO || '+919432670586';
+
+  if (!sid || !token || !from) {
+    return res.json({
+      status: 'unconfigured',
+      message: 'Twilio env vars not set — call not placed.',
+    });
+  }
+
+  /* TwiML: spoken when the call is answered */
+  const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="alice">
+    Hello! This is an urgent call from a TotahDa customer who needs a driver immediately.
+    Please call back or check the TotahDa dashboard as soon as possible. Thank you.
+  </Say>
+</Response>`;
+
+  const body = new URLSearchParams({
+    To:     to,
+    From:   from,
+    Twiml:  twiml,
+  }).toString();
+
+  try {
+    const callRes = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${sid}/Calls.json`,
+      {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/x-www-form-urlencoded',
+          'Authorization': 'Basic ' + Buffer.from(`${sid}:${token}`).toString('base64'),
+        },
+        body,
+      }
+    );
+
+    const data = await callRes.json();
+
+    if (callRes.ok) {
+      console.log(`  📞 Call placed to ${to}  SID: ${data.sid}`);
+      return res.json({ status: 'calling', sid: data.sid, to });
+    } else {
+      console.error(`  ❌ Twilio call error ${callRes.status}:`, data.message);
+      return res.status(502).json({ error: data.message || 'Twilio error', code: data.code });
+    }
+  } catch (err) {
+    console.error('  ❌ Call network error:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+/* ============================================================
    AI CHAT  /api/chat  (kept for future use — not used by UI)
    ============================================================ */
 app.post('/api/chat', async (req, res) => {

@@ -13,3 +13,5 @@ services:
         sync: false
       - key: TWILIO_FROM
         sync: false
+      - key: TWILIO_TO
+        sync: false
