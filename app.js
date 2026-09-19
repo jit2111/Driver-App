@@ -43,12 +43,33 @@ const TRANSLATIONS = {
     modal_btn:      'Book Another Ride',
     ph_name:        'e.g. Jane Doe',
     ph_phone:       'e.g. +1 555 000 1234',
-    /* chat */
-    chat_bubble_label: 'Book with AI',
-    chat_title:        'AI Booking Assistant',
-    chat_input_ph:     'Type a message…',
-    chat_welcome:      "Hi! 👋 I'm your booking assistant. Tell me when and where you'd like a driver, and I'll fill in the form for you!",
-    chat_form_filled:  '✅ Form filled! Scroll up and click "Confirm Booking".',
+    /* chat wizard */
+    chat_bubble_label:  'Book Now',
+    chat_title:         'Book a Driver',
+    chat_input_ph:      'Type your answer…',
+    chat_welcome:       "Hi! 👋 I'll help you book a driver in just a few steps. Let's get started!",
+    chat_form_filled:   '✅ All set! Tap "Confirm Booking" to finalise.',
+    cw_ask_name:        "What's your full name?",
+    cw_ask_phone:       'What is your phone number?',
+    cw_ask_date:        'What date do you need the driver? (e.g. tomorrow, 25/06/2025)',
+    cw_ask_time:        'What time? (e.g. 10am, 2:30 PM)',
+    cw_ask_trip_type:   'Is this a Short Trip or a Long Trip?',
+    cw_ask_driver_choice: 'Do you want a Regular driver or Any available driver?',
+    cw_err_name:        "Please enter your full name (at least 2 characters).",
+    cw_err_phone:       'Please enter a valid phone number.',
+    cw_err_date:        "I didn't catch that date. Try: tomorrow, 25/06/2025, or 2025-06-25.",
+    cw_err_date_past:   "That date is in the past. Please choose today or a future date.",
+    cw_err_time:        "I didn't catch that time. Try: 10am, 2:30 PM, or 14:00.",
+    cw_err_trip_type:   'Please choose Short Trip or Long Trip.',
+    cw_err_driver_choice: 'Please choose Regular or Any.',
+    cw_short_trip:      'Short Trip',
+    cw_long_trip:       'Long Trip',
+    cw_regular:         'Regular',
+    cw_any:             'Any',
+    cw_today:           'Today',
+    cw_tomorrow:        'Tomorrow',
+    cw_summary_header:  "Here's your booking summary:",
+    cw_restart:         '🔄 Start Over',
     /* admin */
     adm_login_title:       'Admin Portal',
     adm_login_sub:         'Enter your PIN to access the dashboard',
@@ -122,12 +143,33 @@ const TRANSLATIONS = {
     modal_btn:      'আরেকটি যাত্রা বুক করুন',
     ph_name:        'যেমন: রাহেলা বেগম',
     ph_phone:       'যেমন: +880 1700 000000',
-    /* chat */
-    chat_bubble_label: 'AI দিয়ে বুক করুন',
-    chat_title:        'AI বুকিং সহকারী',
-    chat_input_ph:     'একটি বার্তা লিখুন…',
-    chat_welcome:      'হ্যালো! 👋 আমি আপনার বুকিং সহকারী। কখন এবং কোথায় ড্রাইভার চান বলুন, আমি ফর্মটি পূরণ করে দেব!',
-    chat_form_filled:  '✅ ফর্ম পূরণ হয়েছে! উপরে স্ক্রল করুন এবং "বুকিং নিশ্চিত করুন" ক্লিক করুন।',
+    /* chat wizard */
+    chat_bubble_label:  'বুক করুন',
+    chat_title:         'ড্রাইভার বুক করুন',
+    chat_input_ph:      'আপনার উত্তর লিখুন…',
+    chat_welcome:       'হ্যালো! 👋 আমি কয়েকটি প্রশ্নের মাধ্যমে আপনাকে ড্রাইভার বুক করতে সাহায্য করব। শুরু করা যাক!',
+    chat_form_filled:   '✅ সব ঠিক আছে! বুকিং নিশ্চিত করতে "বুকিং নিশ্চিত করুন" বাটনে ট্যাপ করুন।',
+    cw_ask_name:        'আপনার পূর্ণ নাম কী?',
+    cw_ask_phone:       'আপনার ফোন নম্বর কী?',
+    cw_ask_date:        'কোন তারিখে ড্রাইভার দরকার? (যেমন: আগামীকাল, ২৫/০৬/২০২৫)',
+    cw_ask_time:        'কোন সময়ে? (যেমন: সকাল ১০টা, বিকেল ২:৩০)',
+    cw_ask_trip_type:   'এটি কি ছোট ট্রিপ না লম্বা ট্রিপ?',
+    cw_ask_driver_choice: 'আপনি কি নিয়মিত ড্রাইভার চান নাকি যেকোনো ড্রাইভার?',
+    cw_err_name:        'অনুগ্রহ করে আপনার পূর্ণ নাম লিখুন (কমপক্ষে ২ অক্ষর)।',
+    cw_err_phone:       'অনুগ্রহ করে একটি সঠিক ফোন নম্বর দিন।',
+    cw_err_date:        'তারিখটি বুঝতে পারিনি। এভাবে চেষ্টা করুন: আগামীকাল, ২৫/০৬/২০২৫, বা 2025-06-25।',
+    cw_err_date_past:   'এই তারিখটি অতীতে। আজকের বা ভবিষ্যতের তারিখ বেছে নিন।',
+    cw_err_time:        'সময়টি বুঝতে পারিনি। এভাবে চেষ্টা করুন: সকাল ১০টা, 2:30 PM, বা 14:00।',
+    cw_err_trip_type:   'অনুগ্রহ করে ছোট ট্রিপ বা লম্বা ট্রিপ বেছে নিন।',
+    cw_err_driver_choice: 'অনুগ্রহ করে নিয়মিত বা যেকোনো বেছে নিন।',
+    cw_short_trip:      'ছোট ট্রিপ',
+    cw_long_trip:       'লম্বা ট্রিপ',
+    cw_regular:         'নিয়মিত',
+    cw_any:             'যেকোনো',
+    cw_today:           'আজ',
+    cw_tomorrow:        'আগামীকাল',
+    cw_summary_header:  'আপনার বুকিং সারসংক্ষেপ:',
+    cw_restart:         '🔄 আবার শুরু করুন',
     /* admin */
     adm_login_title:       'অ্যাডমিন পোর্টাল',
     adm_login_sub:         'ড্যাশবোর্ডে প্রবেশ করতে আপনার পিন দিন',
@@ -437,27 +479,333 @@ function formatDateTime(isoStr) {
 }
 
 /* ─────────────────────────────────────
-   AI Chat  (index.html only)
+   Booking Chat Wizard  (index.html only)
+   No API key required — fully scripted.
 ───────────────────────────────────── */
 (function initChat() {
-  const bubble   = document.getElementById('chatBubble');
-  const panel    = document.getElementById('chatPanel');
-  const closeBtn = document.getElementById('chatClose');
-  const input    = document.getElementById('chatInput');
-  const sendBtn  = document.getElementById('chatSend');
+  const bubble     = document.getElementById('chatBubble');
+  const panel      = document.getElementById('chatPanel');
+  const closeBtn   = document.getElementById('chatClose');
+  const input      = document.getElementById('chatInput');
+  const sendBtn    = document.getElementById('chatSend');
   const messagesEl = document.getElementById('chatMessages');
 
-  if (!bubble || !panel) return;   /* not on index.html */
+  if (!bubble || !panel) return; /* not on index.html */
 
-  /* conversation history sent to the API */
-  let history = [];
-  let opened  = false;
+  /* ── collected answers ── */
+  const answers = {};
+
+  /* ── step definitions ── */
+  /* Each step: { key, ask(t), validate(val,t), parse(val), chips(t)? } */
+  function getSteps(t) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    return [
+      {
+        key: 'fullName',
+        ask: () => t.cw_ask_name,
+        validate: (v) => v.trim().length >= 2 ? null : t.cw_err_name,
+        parse: (v) => v.trim(),
+      },
+      {
+        key: 'phone',
+        ask: () => t.cw_ask_phone,
+        validate: (v) => /^[\d\s+\-()\[\]]{6,20}$/.test(v.trim()) ? null : t.cw_err_phone,
+        parse: (v) => v.trim(),
+      },
+      {
+        key: 'tripDate',
+        ask: () => t.cw_ask_date,
+        validate: (v) => {
+          const d = parseDate(v.trim());
+          if (!d) return t.cw_err_date;
+          if (d < todayStr) return t.cw_err_date_past;
+          return null;
+        },
+        parse: (v) => parseDate(v.trim()),
+        chips: () => quickDateChips(t),
+      },
+      {
+        key: 'tripTime',
+        ask: () => t.cw_ask_time,
+        validate: (v) => parseTime(v.trim()) ? null : t.cw_err_time,
+        parse: (v) => parseTime(v.trim()),
+        chips: () => [
+          { label: '🌅 8:00 AM',  value: '08:00' },
+          { label: '☀️ 10:00 AM', value: '10:00' },
+          { label: '🌇 2:00 PM',  value: '14:00' },
+          { label: '🌆 6:00 PM',  value: '18:00' },
+        ],
+      },
+      {
+        key: 'tripType',
+        ask: () => t.cw_ask_trip_type,
+        validate: (v) => ['short trip','long trip','short','long'].includes(v.toLowerCase().trim()) ? null : t.cw_err_trip_type,
+        parse: (v) => v.toLowerCase().includes('long') ? 'Long Trip' : 'Short Trip',
+        chips: () => [
+          { label: '🏙️ ' + t.cw_short_trip, value: t.cw_short_trip },
+          { label: '🛣️ ' + t.cw_long_trip,  value: t.cw_long_trip  },
+        ],
+      },
+      {
+        key: 'driverChoice',
+        ask: () => t.cw_ask_driver_choice,
+        validate: (v) => ['regular','any'].includes(v.toLowerCase().trim()) ? null : t.cw_err_driver_choice,
+        parse: (v) => v.toLowerCase().includes('any') ? 'Any' : 'Regular',
+        chips: () => [
+          { label: '⭐ ' + t.cw_regular, value: t.cw_regular },
+          { label: '🎲 ' + t.cw_any,     value: t.cw_any     },
+        ],
+      },
+    ];
+  }
+
+  /* ── date helpers ── */
+  function parseDate(str) {
+    /* Accept: YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY, "tomorrow", "today" */
+    const today = new Date(); today.setHours(0,0,0,0);
+    const s = str.toLowerCase().trim();
+    if (s === 'today' || s === 'আজ') {
+      return today.toISOString().split('T')[0];
+    }
+    if (s === 'tomorrow' || s === 'আগামীকাল') {
+      const t = new Date(today); t.setDate(t.getDate() + 1);
+      return t.toISOString().split('T')[0];
+    }
+    /* ISO */
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    /* DD/MM/YYYY or DD-MM-YYYY */
+    const dm = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (dm) {
+      const [, d, m, y] = dm;
+      return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+    }
+    return null;
+  }
+
+  function parseTime(str) {
+    /* Accept: HH:MM, H:MM, "10am", "2pm", "10:30 AM" */
+    const s = str.toLowerCase().replace(/\s/g,'');
+    const ampm = s.match(/^(\d{1,2})(?::(\d{2}))?(am|pm)$/);
+    if (ampm) {
+      let h = parseInt(ampm[1], 10);
+      const m = ampm[2] ? parseInt(ampm[2], 10) : 0;
+      if (ampm[3] === 'pm' && h !== 12) h += 12;
+      if (ampm[3] === 'am' && h === 12) h = 0;
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    }
+    const hm = str.match(/^(\d{1,2}):(\d{2})$/);
+    if (hm) {
+      const h = parseInt(hm[1],10), m = parseInt(hm[2],10);
+      if (h >= 0 && h <= 23 && m >= 0 && m <= 59)
+        return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    }
+    return null;
+  }
+
+  function quickDateChips(t) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+    const d2 = new Date(today); d2.setDate(today.getDate() + 2);
+    const fmt = d => d.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
+    return [
+      { label: '📅 ' + t.cw_today,    value: today.toISOString().split('T')[0] },
+      { label: '📅 ' + t.cw_tomorrow, value: tomorrow.toISOString().split('T')[0] },
+      { label: '📅 ' + fmt(d2),       value: d2.toISOString().split('T')[0] },
+    ];
+  }
+
+  /* ── state ── */
+  let stepIndex = 0;
+  let started   = false;
+
+  /* ── DOM helpers ── */
+  function appendMsg(role, html, isHtml = false) {
+    const div = document.createElement('div');
+    div.className = 'chat-msg ' + (role === 'bot' ? 'chat-msg-bot' : 'chat-msg-user');
+    if (isHtml) div.innerHTML = html; else div.textContent = html;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return div;
+  }
+
+  function appendChips(chips) {
+    /* remove any existing chip row */
+    const old = messagesEl.querySelector('.chat-chips');
+    if (old) old.remove();
+
+    const row = document.createElement('div');
+    row.className = 'chat-chips';
+    chips.forEach(({ label, value }) => {
+      const btn = document.createElement('button');
+      btn.className = 'chat-chip-btn';
+      btn.textContent = label;
+      btn.addEventListener('click', () => {
+        row.remove();
+        submitAnswer(value);
+      });
+      row.appendChild(btn);
+    });
+    messagesEl.appendChild(row);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function removeChips() {
+    const el = messagesEl.querySelector('.chat-chips');
+    if (el) el.remove();
+  }
+
+  function showTypingThen(ms, cb) {
+    const div = document.createElement('div');
+    div.className = 'chat-msg chat-msg-bot chat-msg-typing';
+    div.innerHTML = '<span class="chat-dot"></span><span class="chat-dot"></span><span class="chat-dot"></span>';
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    setTimeout(() => { div.remove(); cb(); }, ms);
+  }
+
+  /* ── ask a step ── */
+  function askStep() {
+    const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    const steps = getSteps(t);
+    if (stepIndex >= steps.length) { finishBooking(); return; }
+    const step = steps[stepIndex];
+    showTypingThen(420, () => {
+      appendMsg('bot', step.ask());
+      const chips = step.chips ? step.chips() : null;
+      if (chips) appendChips(chips);
+      setInputEnabled(true);
+    });
+  }
+
+  /* ── submit an answer (from text input or chip) ── */
+  function submitAnswer(raw) {
+    const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    const steps = getSteps(t);
+    const step  = steps[stepIndex];
+
+    removeChips();
+    appendMsg('user', raw);
+    setInputEnabled(false);
+
+    const err = step.validate(raw, t);
+    if (err) {
+      showTypingThen(320, () => {
+        appendMsg('bot', err);
+        const chips = step.chips ? step.chips() : null;
+        if (chips) appendChips(chips);
+        setInputEnabled(true);
+      });
+      return;
+    }
+
+    answers[step.key] = step.parse(raw);
+    stepIndex++;
+    askStep();
+  }
+
+  /* ── finish: fill the form ── */
+  function finishBooking() {
+    const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+
+    /* summary card */
+    showTypingThen(500, () => {
+      const date = formatDate(answers.tripDate);
+      const time = formatTime(answers.tripTime);
+      const summary = `${t.cw_summary_header}\n\n` +
+        `👤 ${answers.fullName}\n` +
+        `📞 ${answers.phone}\n` +
+        `📅 ${date}  🕐 ${time}\n` +
+        `🚗 ${answers.tripType}  ·  ${answers.driverChoice}`;
+
+      const div = document.createElement('div');
+      div.className = 'chat-msg chat-msg-bot chat-summary';
+      div.textContent = summary;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+
+      /* fill the real form */
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+      set('fullName', answers.fullName);
+      set('phone',    answers.phone);
+      set('tripDate', answers.tripDate);
+      set('tripTime', answers.tripTime);
+      const tripRadio = document.querySelector(`input[name="tripType"][value="${answers.tripType}"]`);
+      if (tripRadio) tripRadio.checked = true;
+      const drvRadio = document.querySelector(`input[name="driverChoice"][value="${answers.driverChoice}"]`);
+      if (drvRadio) drvRadio.checked = true;
+
+      /* confirm button inside chat */
+      setTimeout(() => {
+        const notice = document.createElement('div');
+        notice.className = 'chat-form-filled-notice';
+        notice.textContent = t.chat_form_filled;
+        messagesEl.appendChild(notice);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+
+        const btnRow = document.createElement('div');
+        btnRow.className = 'chat-chips';
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'chat-chip-btn chat-chip-confirm';
+        confirmBtn.textContent = t.btn_confirm;
+        confirmBtn.addEventListener('click', () => {
+          closeChat();
+          const form = document.getElementById('bookNow');
+          if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          setTimeout(() => {
+            const submitBtn = document.querySelector('#bookingForm [type="submit"]');
+            if (submitBtn) submitBtn.click();
+          }, 600);
+        });
+
+        const restartBtn = document.createElement('button');
+        restartBtn.className = 'chat-chip-btn';
+        restartBtn.textContent = t.cw_restart;
+        restartBtn.addEventListener('click', () => restartChat());
+
+        btnRow.appendChild(confirmBtn);
+        btnRow.appendChild(restartBtn);
+        messagesEl.appendChild(btnRow);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+
+        input.style.display = 'none';
+        sendBtn.style.display = 'none';
+      }, 300);
+    });
+  }
+
+  /* ── restart ── */
+  function restartChat() {
+    Object.keys(answers).forEach(k => delete answers[k]);
+    stepIndex = 0;
+    messagesEl.innerHTML = '';
+    input.style.display  = '';
+    sendBtn.style.display = '';
+    setInputEnabled(false);
+    start();
+  }
+
+  /* ── enable / disable text input ── */
+  function setInputEnabled(on) {
+    input.disabled    = !on;
+    sendBtn.disabled  = !on;
+    if (on) input.focus();
+  }
+
+  /* ── start the conversation ── */
+  function start() {
+    const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    setInputEnabled(false);
+    showTypingThen(500, () => {
+      appendMsg('bot', t.chat_welcome);
+      setTimeout(askStep, 300);
+    });
+  }
 
   /* ── open / close ── */
   function openChat() {
     panel.classList.remove('hidden');
-    opened = true;
-    if (history.length === 0) showWelcome();
+    if (!started) { started = true; start(); }
     input.focus();
   }
 
@@ -468,131 +816,14 @@ function formatDateTime(isoStr) {
   bubble.addEventListener('click', () => panel.classList.contains('hidden') ? openChat() : closeChat());
   closeBtn.addEventListener('click', closeChat);
 
-  /* ── welcome message ── */
-  function showWelcome() {
-    const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
-    appendMsg('bot', t.chat_welcome);
-  }
-
-  /* ── append a message bubble ── */
-  function appendMsg(role, text) {
-    const div = document.createElement('div');
-    div.className = 'chat-msg ' + (role === 'bot' ? 'chat-msg-bot' : 'chat-msg-user');
-    div.textContent = text;
-    messagesEl.appendChild(div);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-    return div;
-  }
-
-  /* ── typing indicator ── */
-  function showTyping() {
-    const div = document.createElement('div');
-    div.className = 'chat-msg chat-msg-bot chat-msg-typing';
-    div.id = 'chatTyping';
-    div.innerHTML = '<span class="chat-dot"></span><span class="chat-dot"></span><span class="chat-dot"></span>';
-    messagesEl.appendChild(div);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
-  function hideTyping() {
-    const el = document.getElementById('chatTyping');
-    if (el) el.remove();
-  }
-
-  /* ── fill booking form from AI action ── */
-  function fillForm(data) {
-    if (data.fullName) {
-      const el = document.getElementById('fullName');
-      if (el) el.value = data.fullName;
-    }
-    if (data.phone) {
-      const el = document.getElementById('phone');
-      if (el) el.value = data.phone;
-    }
-    if (data.tripDate) {
-      const el = document.getElementById('tripDate');
-      if (el) el.value = data.tripDate;
-    }
-    if (data.tripTime) {
-      const el = document.getElementById('tripTime');
-      if (el) el.value = data.tripTime;
-    }
-    if (data.tripType) {
-      const radio = document.querySelector(`input[name="tripType"][value="${data.tripType}"]`);
-      if (radio) radio.checked = true;
-    }
-    if (data.driverChoice) {
-      const radio = document.querySelector(`input[name="driverChoice"][value="${data.driverChoice}"]`);
-      if (radio) radio.checked = true;
-    }
-
-    /* show green notice */
-    const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
-    const notice = document.createElement('div');
-    notice.className = 'chat-form-filled-notice';
-    notice.textContent = t.chat_form_filled;
-    messagesEl.appendChild(notice);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-
-    /* scroll page to form */
-    const form = document.getElementById('bookNow');
-    if (form) setTimeout(() => form.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
-  }
-
-  /* ── send a message ── */
-  async function sendMessage() {
+  /* ── handle typed input ── */
+  function handleSend() {
     const text = input.value.trim();
-    if (!text) return;
-
+    if (!text || input.disabled) return;
     input.value = '';
-    sendBtn.disabled = true;
-
-    appendMsg('user', text);
-    history.push({ role: 'user', content: text });
-
-    showTyping();
-
-    try {
-      const res = await fetch('/api/chat', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ messages: history, lang: currentLang }),
-      });
-
-      let data;
-      try { data = await res.json(); }
-      catch { data = {}; }
-
-      hideTyping();
-
-      if (data.error) {
-        appendMsg('bot', '⚠️ ' + data.error);
-      } else {
-        const reply = data.reply || '';
-        if (reply) {
-          appendMsg('bot', reply);
-          history.push({ role: 'assistant', content: reply });
-        }
-        if (data.action?.type === 'fill_form') {
-          fillForm(data.action.data);
-        }
-      }
-    } catch (err) {
-      hideTyping();
-      appendMsg('bot', '⚠️ Could not reach the server. Please try again.');
-      console.error('chat error:', err);
-    } finally {
-      sendBtn.disabled = false;
-      input.focus();
-    }
+    submitAnswer(text);
   }
 
-  sendBtn.addEventListener('click', sendMessage);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
-
-  /* re-show welcome in correct language when language changes */
-  const _origApplyLang = applyLanguage;
-  applyLanguage = function(lang) {
-    _origApplyLang(lang);
-    /* if chat was never opened just leave it; welcome shown on first open */
-  };
+  sendBtn.addEventListener('click', handleSend);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
 })();

@@ -426,18 +426,8 @@ app.post('/api/sms', async (req, res) => {
 });
 
 /* ============================================================
-   AI CHAT  /api/chat
+   AI CHAT  /api/chat  (kept for future use — not used by UI)
    ============================================================ */
-
-/**
- * POST /api/chat
- * Body: { messages: [{role, content}, …], lang?: 'en'|'bn' }
- *
- * Proxies the conversation to OpenAI Chat Completions (gpt-4o-mini).
- * Requires env var: OPENAI_API_KEY
- *
- * Returns: { reply: string, action?: { type:'fill_form', data:{…} } }
- */
 app.post('/api/chat', async (req, res) => {
   const { messages = [], lang = 'en' } = req.body || {};
   if (!Array.isArray(messages) || messages.length === 0)
