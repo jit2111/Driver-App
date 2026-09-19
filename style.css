@@ -451,6 +451,39 @@ input.invalid {
 }
 
 /* ===========================
+   Urgent Call Button
+=========================== */
+@keyframes urgentPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.55); }
+  50%       { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+}
+
+.btn-urgent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  border-radius: 12px;
+  text-decoration: none;
+  letter-spacing: 0.2px;
+  animation: urgentPulse 1.4s ease-in-out infinite;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-urgent:hover {
+  background: linear-gradient(135deg, #b91c1c, #dc2626);
+  transform: scale(1.02);
+  animation: none;
+  box-shadow: 0 6px 20px rgba(220,38,38,0.45);
+}
+
+/* ===========================
    Buttons
 =========================== */
 .btn {
