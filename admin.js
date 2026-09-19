@@ -245,6 +245,11 @@ async function renderBookings(filter = '') {
             ).join('')}
         </select>
       </td>
+      <td style="white-space:nowrap">
+        ${b.needCar === 'Yes'
+          ? `<span class="car-size-badge car-size-${(b.carSize||'').toLowerCase()}">🚗 ${escHtml(b.carSize||'')}</span>`
+          : `<span style="color:#57606a;font-size:0.8rem">—</span>`}
+      </td>
       <td>
         <select class="status-select" onchange="changeStatus('${b.id}', this.value)">
           ${['Confirmed','Pending','Cancelled'].map(s =>

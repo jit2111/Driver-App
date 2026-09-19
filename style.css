@@ -1088,6 +1088,36 @@ input.invalid {
 .driver-choice-regular { background: #d1fae5; color: #065f46; }
 .driver-choice-any     { background: #ede9fe; color: #5b21b6; }
 
+/* ===========================
+   Car Size reveal + badges
+=========================== */
+.car-size-group {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.28s ease, opacity 0.22s ease, margin-top 0.22s ease;
+  margin-top: 0;
+}
+
+.car-size-group:not(.hidden) {
+  max-height: 120px;
+  opacity: 1;
+  margin-top: 4px;
+}
+
+/* admin badge */
+.car-size-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.car-size-small  { background: #dbeafe; color: #1d4ed8; }
+.car-size-medium { background: #fef9c3; color: #92400e; }
+.car-size-large  { background: #fce7f3; color: #9d174d; }
+
 .stat-pill-today {
   background: linear-gradient(135deg, #dcfce7, #bbf7d0) !important;
   border-color: #86efac !important;

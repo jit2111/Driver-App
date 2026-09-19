@@ -38,6 +38,13 @@ const TRANSLATIONS = {
     trip_long:      '🛣️ Long Trip',
     driver_regular: '⭐ Regular',
     driver_any:     '🎲 Any',
+    lbl_need_car:   'Need a Car?',
+    need_car_no:    '🚶 No, driver only',
+    need_car_yes:   '🚗 Yes, need a car',
+    lbl_car_size:   'Car Size',
+    car_small:      '🚗 Small',
+    car_medium:     '🚙 Medium',
+    car_large:      '🚐 Large',
     btn_confirm:    '🚗 Confirm Booking',
     btn_urgent:     '📞 Urgent? Call TotahDa Now',
     modal_title:    'Booking Confirmed! 🎉',
@@ -89,6 +96,7 @@ const TRANSLATIONS = {
     adm_th_time:           'Time',
     adm_th_trip:           'Trip',
     adm_th_choice:         'Choice',
+    adm_th_car:            'Car',
     adm_th_status:         'Status',
     adm_th_driver:         'Driver',
     adm_th_booked_at:      'Booked At',
@@ -139,6 +147,13 @@ const TRANSLATIONS = {
     trip_long:      '🛣️ লম্বা ট্রিপ',
     driver_regular: '⭐ নিয়মিত',
     driver_any:     '🎲 যেকোনো',
+    lbl_need_car:   'গাড়ি দরকার?',
+    need_car_no:    '🚶 না, শুধু ড্রাইভার',
+    need_car_yes:   '🚗 হ্যাঁ, গাড়ি দরকার',
+    lbl_car_size:   'গাড়ির আকার',
+    car_small:      '🚗 ছোট',
+    car_medium:     '🚙 মাঝারি',
+    car_large:      '🚐 বড়',
     btn_confirm:    '🚗 বুকিং নিশ্চিত করুন',
     btn_urgent:     '📞 জরুরি? এখনই TotahDa-কে কল করুন',
     modal_title:    'বুকিং নিশ্চিত হয়েছে! 🎉',
@@ -190,6 +205,7 @@ const TRANSLATIONS = {
     adm_th_time:           'সময়',
     adm_th_trip:           'ট্রিপ',
     adm_th_choice:         'পছন্দ',
+    adm_th_car:            'গাড়ি',
     adm_th_status:         'অবস্থা',
     adm_th_driver:         'ড্রাইভার',
     adm_th_booked_at:      'বুকিং সময়',
@@ -344,6 +360,19 @@ async function updateBookingStatus(id, status) {
 }
 
 /* ─────────────────────────────────────
+   Need-a-Car toggle  (index.html only)
+───────────────────────────────────── */
+function toggleCarSize(radio) {
+  const group = document.getElementById('carSizeGroup');
+  if (!group) return;
+  if (radio.value === 'Yes') {
+    group.classList.remove('hidden');
+  } else {
+    group.classList.add('hidden');
+  }
+}
+
+/* ─────────────────────────────────────
    Booking Form  (index.html only)
 ───────────────────────────────────── */
 const bookingForm = document.getElementById('bookingForm');
@@ -365,8 +394,14 @@ if (bookingForm) {
     /* restore radio defaults */
     const shortTrip = document.querySelector('input[name="tripType"][value="Short Trip"]');
     const regular   = document.querySelector('input[name="driverChoice"][value="Regular"]');
+    const noCar     = document.querySelector('input[name="needCar"][value="No"]');
+    const smallCar  = document.querySelector('input[name="carSize"][value="Small"]');
     if (shortTrip) shortTrip.checked = true;
     if (regular)   regular.checked   = true;
+    if (noCar)     noCar.checked     = true;
+    if (smallCar)  smallCar.checked  = true;
+    const carSizeGroup = document.getElementById('carSizeGroup');
+    if (carSizeGroup) carSizeGroup.classList.add('hidden');
   }
 
   applyFormDefaults();
@@ -386,6 +421,10 @@ if (bookingForm) {
       tripTime:     document.getElementById('tripTime').value,
       tripType:     document.querySelector('input[name="tripType"]:checked').value,
       driverChoice: document.querySelector('input[name="driverChoice"]:checked').value,
+      needCar:      document.querySelector('input[name="needCar"]:checked').value,
+      carSize:      document.querySelector('input[name="needCar"]:checked').value === 'Yes'
+                      ? document.querySelector('input[name="carSize"]:checked').value
+                      : '',
     };
 
     try {

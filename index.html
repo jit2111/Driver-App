@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TotahDa – Book a Driver</title>
-  <link rel="stylesheet" href="style.css?v=10" />
+  <link rel="stylesheet" href="style.css?v=11" />
 </head>
 <body>
 
@@ -122,6 +122,40 @@
                   <span data-i18n="driver_any">🎲 Any</span>
                 </label>
               </div>
+            </div>
+          </div>
+
+          <!-- Need a Car -->
+          <div class="form-group">
+            <label data-i18n="lbl_need_car">Need a Car?</label>
+            <div class="radio-pill-group">
+              <label class="radio-pill">
+                <input type="radio" name="needCar" value="No" checked onchange="toggleCarSize(this)" />
+                <span data-i18n="need_car_no">🚶 No, driver only</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="needCar" value="Yes" onchange="toggleCarSize(this)" />
+                <span data-i18n="need_car_yes">🚗 Yes, need a car</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Car Size (revealed when Need a Car = Yes) -->
+          <div class="form-group car-size-group hidden" id="carSizeGroup">
+            <label data-i18n="lbl_car_size">Car Size</label>
+            <div class="radio-pill-group">
+              <label class="radio-pill">
+                <input type="radio" name="carSize" value="Small" checked />
+                <span data-i18n="car_small">🚗 Small</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="carSize" value="Medium" />
+                <span data-i18n="car_medium">🚙 Medium</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="carSize" value="Large" />
+                <span data-i18n="car_large">🚐 Large</span>
+              </label>
             </div>
           </div>
 
