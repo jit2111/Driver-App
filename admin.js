@@ -258,9 +258,12 @@ async function renderBookings(filter = '') {
       </td>
       <td class="driver-cell">${driverCell}</td>
       <td style="color:#57606a;font-size:0.8rem;white-space:nowrap">${formatDateTime(b.bookedAt)}</td>
-      <td>
-        <button class="btn btn-outline-report btn-sm" style="margin-bottom:4px;" onclick="openEditDateTimeModal('${b.id}')">📅 Edit Date/Time</button><br/>
-        <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${b.id}')">Delete</button>
+      <td style="position:relative;">
+        <button class="btn btn-sm btn-actions-toggle" onclick="toggleActionMenu('${b.id}', event)">⋮ Actions</button>
+        <div id="actionMenu-${b.id}" class="action-menu hidden">
+          <button class="action-menu-item" onclick="openEditDateTimeModal('${b.id}');closeAllActionMenus()">📅 Edit Date/Time</button>
+          <button class="action-menu-item action-menu-item--danger" onclick="openDeleteModal('${b.id}');closeAllActionMenus()">🗑 Delete</button>
+        </div>
       </td>
     `;
     tbody.appendChild(tr);
@@ -418,6 +421,23 @@ function showToast(msg) {
 /* ─────────────────────────────────────
    Edit Date / Time modal
 ───────────────────────────────────── */
+/* ─────────────────────────────────────
+   Actions dropdown menu
+───────────────────────────────────── */
+function closeAllActionMenus() {
+  document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+}
+
+function toggleActionMenu(id, e) {
+  e.stopPropagation();
+  const menu = document.getElementById('actionMenu-' + id);
+  const isHidden = menu.classList.contains('hidden');
+  closeAllActionMenus();
+  if (isHidden) menu.classList.remove('hidden');
+}
+
+document.addEventListener('click', closeAllActionMenus);
+
 let _editingDateTimeId = null;
 
 async function openEditDateTimeModal(id) {
