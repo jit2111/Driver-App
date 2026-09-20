@@ -927,22 +927,6 @@ input.invalid {
   border-color: #2563eb;
 }
 
-.inline-date-input {
-  border: 2px solid #dbe4ff;
-  border-radius: 8px;
-  padding: 4px 6px;
-  font-size: 0.75rem;
-  outline: none;
-  background: #f8faff;
-  font-weight: 600;
-  color: #1a3a8f;
-  cursor: pointer;
-  width: auto;
-}
-.inline-date-input:focus {
-  border-color: #2563eb;
-}
-
 .driver-cell {
   white-space: nowrap;
 }
