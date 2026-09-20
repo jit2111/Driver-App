@@ -559,20 +559,11 @@ async function generateReport() {
   container.innerHTML = html;
 }
 
-function getPdfColumns() {
-  return {
-    date:     document.getElementById('pdfColDate')?.checked    ?? true,
-    time:     document.getElementById('pdfColTime')?.checked    ?? true,
-    bookedAt: document.getElementById('pdfColBookedAt')?.checked ?? true,
-  };
-}
-
 async function sendReportEmail() {
-  const month   = document.getElementById('reportMonth').value;
-  const year    = document.getElementById('reportYear').value;
-  const driver  = document.getElementById('reportDriver').value;
-  const columns = getPdfColumns();
-  const btn     = document.getElementById('emailReportBtn');
+  const month  = document.getElementById('reportMonth').value;
+  const year   = document.getElementById('reportYear').value;
+  const driver = document.getElementById('reportDriver').value;
+  const btn    = document.getElementById('emailReportBtn');
 
   btn.disabled    = true;
   btn.textContent = '⏳ Sending…';
@@ -584,7 +575,7 @@ async function sendReportEmail() {
     const res  = await fetch('/api/email-report', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ month, year, driver, columns }),
+      body:    JSON.stringify({ month, year, driver }),
       signal:  controller.signal,
     });
     clearTimeout(timer);

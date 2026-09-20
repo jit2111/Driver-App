@@ -597,12 +597,7 @@ Then confirm the form is filled. Only discuss bookings.`;
  * Build a minimal valid PDF from an array of booking rows.
  * Returns a Buffer containing the complete PDF binary.
  */
-function buildReportPdf(bookings, month, year, driverFilter, columns) {
-  /* columns = { date: bool, time: bool, bookedAt: bool } — defaults all true */
-  const showDate     = columns?.date     !== false;
-  const showTime     = columns?.time     !== false;
-  const showBookedAt = columns?.bookedAt !== false;
-
+function buildReportPdf(bookings, month, year, driverFilter) {
   const MONTH_NAMES_SRV = ['January','February','March','April','May','June',
     'July','August','September','October','November','December'];
 
@@ -626,73 +621,31 @@ function buildReportPdf(bookings, month, year, driverFilter, columns) {
   const titleText = 'TotahDa Booking Report - ' + MONTH_NAMES_SRV[month - 1] + ' ' + year +
     (driverFilter ? ' - ' + safe(driverFilter) : '');
 
-  /* ── Build dynamic column list based on user selection ──
-     Fixed cols: #(22), Name(145), Phone(96), Status(72), Driver(105)  = 440
-     Optional:   Date(80), Time(56), Booked At(194)
-     Page orientation:
-       All on  → landscape 842×595, usable 770
-       Any off → portrait  595×842, usable 523
-  */
-  const optionalCols = [];
-  if (showDate)     optionalCols.push({ key: 'date',     label: 'Date',      w: 80  });
-  if (showTime)     optionalCols.push({ key: 'time',     label: 'Time',      w: 56  });
-  if (showBookedAt) optionalCols.push({ key: 'bookedAt', label: 'Booked At', w: 194 });
-
-  const optW = optionalCols.reduce((s, c) => s + c.w, 0);
-  const fixedW = 440; /* #, Name, Phone, Status, Driver */
-  const totalColW = fixedW + optW;
-
-  /* choose orientation so the table fits */
-  const landscape = totalColW > 510;
-  const W = landscape ? 842 : 595;
-  const H = landscape ? 595 : 842;
+  /* A4 landscape in points (842×595) — wider table fits all columns */
+  const W = 842, H = 595;
   const ML = 36, MR = 36, MT = 50, rowH = 18, fontSize = 9, headerFontSize = 12;
-  const usable = W - ML - MR;
-
-  /* scale columns proportionally to fill usable width exactly */
-  const scale  = usable / totalColW;
-  const fixedCols = [
-    { label: '#',      w: Math.round(22  * scale) },
-    { label: 'Name',   w: Math.round(145 * scale) },
-    { label: 'Phone',  w: Math.round(96  * scale) },
-  ];
-  const midCols   = optionalCols.map(c => ({ label: c.label, w: Math.round(c.w * scale) }));
-  const tailCols  = [
-    { label: 'Status', w: Math.round(72  * scale) },
-    { label: 'Driver', w: Math.round(105 * scale) },
-  ];
-
-  /* correct rounding drift on the last column */
-  const allColDefs = [...fixedCols, ...midCols, ...tailCols];
-  const drift = usable - allColDefs.reduce((s, c) => s + c.w, 0);
-  allColDefs[allColDefs.length - 1].w += drift;
-
-  const cols    = allColDefs.map(c => c.w);
-  const headers = allColDefs.map(c => c.label);
+  /* usable width = 842-36-36 = 770; col widths sum to 770 */
+  const cols = [22, 145, 96, 80, 56, 72, 105, 194]; /* #, Name, Phone, Date, Time, Status, Driver, Booked At */
+  const headers = ['#', 'Name', 'Phone', 'Date', 'Time', 'Status', 'Driver', 'Booked At'];
 
   const objects = [];
   let oid = 1;
   const addObj = content => { const id = oid++; objects.push({ id, content }); return id; };
   const pages  = [];
 
-  const allRows = bookings.map((b, i) => {
-    const row = [
-      String(i + 1),
-      b.fullName || '',
-      b.phone    || '',
-    ];
-    if (showDate)     row.push(fmtDate(b.tripDate));
-    if (showTime)     row.push(fmtTime(b.tripTime));
-    row.push(b.status || 'Pending');
-    row.push(b.driver || '');
-    if (showBookedAt) row.push(
-      b.bookedAt ? new Date(b.bookedAt).toLocaleString('en-GB', {
-        day: '2-digit', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit',
-      }) : ''
-    );
-    return row;
-  });
+  const allRows = bookings.map((b, i) => [
+    String(i + 1),
+    b.fullName || '',
+    b.phone    || '',
+    fmtDate(b.tripDate),
+    fmtTime(b.tripTime),
+    b.status   || 'Pending',
+    b.driver   || '',
+    b.bookedAt ? new Date(b.bookedAt).toLocaleString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    }) : '',
+  ]);
 
   const ROWS_PER_PAGE = 34;
   const totalPages    = Math.max(1, Math.ceil(allRows.length / ROWS_PER_PAGE));
@@ -822,7 +775,7 @@ function buildReportPdf(bookings, month, year, driverFilter, columns) {
 }
 
 app.post('/api/email-report', async (req, res) => {
-  const { month, year, driver, columns } = req.body || {};
+  const { month, year, driver } = req.body || {};
   if (!month || !year) return res.status(400).json({ error: 'month and year are required' });
 
   const apiKey      = process.env.SENDGRID_API_KEY;
@@ -853,7 +806,7 @@ app.post('/api/email-report', async (req, res) => {
   });
 
   /* ── Build PDF ── */
-  const pdfBuf  = buildReportPdf(filtered, m, y, driver || '', columns);
+  const pdfBuf  = buildReportPdf(filtered, m, y, driver || '');
   const pdfB64  = pdfBuf.toString('base64');
   const MONTH_SRV = ['January','February','March','April','May','June',
     'July','August','September','October','November','December'];
