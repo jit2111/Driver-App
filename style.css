@@ -547,52 +547,6 @@ input.invalid {
   border-radius: 7px;
 }
 
-.btn-actions-toggle {
-  background: #f0f3f8;
-  color: #1f2328;
-  border: 1px solid #d0d7de;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.btn-actions-toggle:hover {
-  background: #e2e8f0;
-}
-
-/* Actions dropdown */
-.action-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 200;
-  background: #fff;
-  border: 1px solid #d0d7de;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  min-width: 160px;
-  overflow: hidden;
-}
-.action-menu-item {
-  display: block;
-  width: 100%;
-  padding: 9px 16px;
-  text-align: left;
-  background: none;
-  border: none;
-  font-size: 0.85rem;
-  color: #1f2328;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.action-menu-item:hover {
-  background: #f6f8fa;
-}
-.action-menu-item--danger {
-  color: #cf222e;
-}
-.action-menu-item--danger:hover {
-  background: #fff0f0;
-}
-
 .btn-full {
   width: 100%;
   padding: 14px;

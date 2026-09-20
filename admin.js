@@ -258,12 +258,8 @@ async function renderBookings(filter = '') {
       </td>
       <td class="driver-cell">${driverCell}</td>
       <td style="color:#57606a;font-size:0.8rem;white-space:nowrap">${formatDateTime(b.bookedAt)}</td>
-      <td style="position:relative;">
-        <button class="btn btn-sm btn-actions-toggle" onclick="toggleActionMenu('${b.id}', event)">⋮ Actions</button>
-        <div id="actionMenu-${b.id}" class="action-menu hidden">
-          <button class="action-menu-item" onclick="openEditDateTimeModal('${b.id}');closeAllActionMenus()">📅 Edit Date/Time</button>
-          <button class="action-menu-item action-menu-item--danger" onclick="openDeleteModal('${b.id}');closeAllActionMenus()">🗑 Delete</button>
-        </div>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${b.id}')">Delete</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -418,65 +414,6 @@ function showToast(msg) {
 /* ─────────────────────────────────────
    Delete booking
 ───────────────────────────────────── */
-/* ─────────────────────────────────────
-   Edit Date / Time modal
-───────────────────────────────────── */
-/* ─────────────────────────────────────
-   Actions dropdown menu
-───────────────────────────────────── */
-function closeAllActionMenus() {
-  document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
-}
-
-function toggleActionMenu(id, e) {
-  e.stopPropagation();
-  const menu = document.getElementById('actionMenu-' + id);
-  const isHidden = menu.classList.contains('hidden');
-  closeAllActionMenus();
-  if (isHidden) menu.classList.remove('hidden');
-}
-
-document.addEventListener('click', closeAllActionMenus);
-
-let _editingDateTimeId = null;
-
-async function openEditDateTimeModal(id) {
-  const all = await getBookings();
-  const booking = all.find(b => b.id === id);
-  if (!booking) return;
-  _editingDateTimeId = id;
-  document.getElementById('editDateTimeBookingName').textContent =
-    `Booking for ${booking.fullName} (${booking.phone})`;
-  document.getElementById('editDateInput').value  = booking.tripDate || '';
-  document.getElementById('editTimeInput').value  = booking.tripTime || '';
-  document.getElementById('err-editDate').textContent = '';
-  document.getElementById('err-editTime').textContent = '';
-  document.getElementById('editDateTimeModal').classList.remove('hidden');
-}
-
-function closeEditDateTimeModal() {
-  document.getElementById('editDateTimeModal').classList.add('hidden');
-  _editingDateTimeId = null;
-}
-
-async function saveEditDateTime() {
-  const date = document.getElementById('editDateInput').value.trim();
-  const time = document.getElementById('editTimeInput').value.trim();
-  const dateErr = document.getElementById('err-editDate');
-  const timeErr = document.getElementById('err-editTime');
-  dateErr.textContent = '';
-  timeErr.textContent = '';
-
-  let valid = true;
-  if (!date) { dateErr.textContent = 'Please select a date.'; valid = false; }
-  if (!time) { timeErr.textContent = 'Please select a time.'; valid = false; }
-  if (!valid) return;
-
-  await updateBookingField(_editingDateTimeId, { tripDate: date, tripTime: time });
-  closeEditDateTimeModal();
-  renderBookings(document.getElementById('searchInput').value);
-}
-
 let pendingDeleteId = null;
 
 function openDeleteModal(id) {
