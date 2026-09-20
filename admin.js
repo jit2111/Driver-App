@@ -235,20 +235,8 @@ async function renderBookings(filter = '') {
         ${isClash ? '<span class="clash-badge">⚠ Clash</span>' : ''}
       </td>
       <td>${formatTime(b.tripTime)}</td>
-      <td>
-        <select class="status-select trip-type-select" onchange="updateTripField('${b.id}','tripType',this.value)">
-          ${['Short Trip','Long Trip'].map(t =>
-              `<option value="${t}" ${(b.tripType||'Short Trip')===t?'selected':''}>${t}</option>`
-            ).join('')}
-        </select>
-      </td>
-      <td>
-        <select class="status-select driver-choice-select" onchange="updateTripField('${b.id}','driverChoice',this.value)">
-          ${['Regular','Any'].map(c =>
-              `<option value="${c}" ${(b.driverChoice||'Regular')===c?'selected':''}>${c}</option>`
-            ).join('')}
-        </select>
-      </td>
+      <td style="color:#57606a;font-size:0.85rem">${escHtml(b.tripType||'Short Trip')}</td>
+      <td style="color:#57606a;font-size:0.85rem">${escHtml(b.driverChoice||'Regular')}</td>
       <td>
         <select class="status-select" onchange="changeStatus('${b.id}', this.value)">
           ${['Confirmed','Pending','Cancelled'].map(s =>
