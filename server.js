@@ -624,7 +624,7 @@ function buildReportPdf(bookings, month, year, driverFilter) {
   /* A4 portrait in points */
   const W = 595, H = 842;
   const ML = 40, MR = 40, MT = 55, rowH = 18, fontSize = 9, headerFontSize = 12;
-  const cols    = [25, 120, 88, 62, 42, 68, 88, 62]; /* sum = 555 = W-ML-MR */
+  const cols    = [22, 100, 80, 74, 44, 62, 80, 53]; /* sum = 515 = W-ML-MR */
   const headers = ['#', 'Name', 'Phone', 'Date', 'Time', 'Status', 'Driver', 'Booked At'];
 
   const objects = [];
@@ -689,7 +689,7 @@ function buildReportPdf(bookings, month, year, driverFilter) {
       }
       let rx = ML; /* reset x for every row */
       row.forEach((cell, ci) => {
-        const maxChars = Math.floor(cols[ci] / 5.5);
+        const maxChars = Math.floor((cols[ci] - 6) / 5.2);
         const txt = String(cell).slice(0, maxChars);
         lines.push('BT /F1 ' + fontSize + ' Tf ' + (rx + 3) + ' ' + (y - rowH + 5) + ' Td (' + esc(txt) + ') Tj ET');
         rx += cols[ci];
