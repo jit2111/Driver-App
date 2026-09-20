@@ -600,158 +600,176 @@ Then confirm the form is filled. Only discuss bookings.`;
 function buildReportPdf(bookings, month, year, driverFilter) {
   const MONTH_NAMES_SRV = ['January','February','March','April','May','June',
     'July','August','September','October','November','December'];
-  const title = `TotahDa Booking Report — ${MONTH_NAMES_SRV[month - 1]} ${year}` +
-    (driverFilter ? ` — ${driverFilter}` : '');
 
-  /* ── helpers ── */
-  const esc = s => String(s || '')
-    .replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+  /* strip non-latin1 chars so PDF content streams stay valid */
+  const safe = s => String(s || '').replace(/[^\x00-\xFF]/g, '-');
+  /* escape PDF string special chars after making safe */
+  const esc  = s => safe(s).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
 
-  /* page dimensions (A4 portrait points) */
+  const titleText = 'TotahDa Booking Report - ' + MONTH_NAMES_SRV[month - 1] + ' ' + year +
+    (driverFilter ? ' - ' + safe(driverFilter) : '');
+
+  /* A4 portrait in points */
   const W = 595, H = 842;
-  const ML = 40, MR = 40, MT = 60, rowH = 18, fontSize = 9, headerFontSize = 11;
-  const cols = [30, 130, 90, 65, 45, 70, 90, 90]; // column widths
+  const ML = 40, MR = 40, MT = 55, rowH = 18, fontSize = 9, headerFontSize = 12;
+  const cols    = [25, 120, 88, 62, 42, 68, 88, 62]; /* sum = 555 = W-ML-MR */
   const headers = ['#', 'Name', 'Phone', 'Date', 'Time', 'Status', 'Driver', 'Booked At'];
 
-  const objects = [];   // PDF objects [ {id, content} ]
+  const objects = [];
   let oid = 1;
   const addObj = content => { const id = oid++; objects.push({ id, content }); return id; };
-
-  /* catalogue & page structure built later; collect page streams first */
-  const pages = [];
+  const pages  = [];
 
   const allRows = bookings.map((b, i) => [
     String(i + 1),
-    b.fullName  || '',
-    b.phone     || '',
-    b.tripDate  || '',
-    b.tripTime  || '',
-    b.status    || 'Pending',
-    b.driver    || '',
-    b.bookedAt  ? new Date(b.bookedAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '',
+    b.fullName || '',
+    b.phone    || '',
+    b.tripDate || '',
+    b.tripTime || '',
+    b.status   || 'Pending',
+    b.driver   || '',
+    b.bookedAt ? new Date(b.bookedAt).toLocaleString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    }) : '',
   ]);
 
-  /* split into pages (approx 36 data rows fit per page) */
-  const ROWS_PER_PAGE = 36;
-  for (let p = 0; p < Math.max(1, Math.ceil(allRows.length / ROWS_PER_PAGE)); p++) {
+  const ROWS_PER_PAGE = 34;
+  const totalPages    = Math.max(1, Math.ceil(allRows.length / ROWS_PER_PAGE));
+
+  for (let p = 0; p < totalPages; p++) {
     const pageRows = allRows.slice(p * ROWS_PER_PAGE, (p + 1) * ROWS_PER_PAGE);
     let y = H - MT;
     const lines = [];
 
-    /* title (first page only) */
+    /* title block — first page only */
     if (p === 0) {
-      lines.push(`BT /F1 ${headerFontSize} Tf ${ML} ${y} Td (${esc(title)}) Tj ET`);
-      y -= 20;
-      /* summary line */
+      lines.push('BT /F2 ' + headerFontSize + ' Tf ' + ML + ' ' + y + ' Td (' + esc(titleText) + ') Tj ET');
+      y -= 18;
       const total = bookings.length;
       const conf  = bookings.filter(b => b.status === 'Confirmed').length;
       const pend  = bookings.filter(b => b.status === 'Pending').length;
       const canc  = bookings.filter(b => b.status === 'Cancelled').length;
-      lines.push(`BT /F1 ${fontSize} Tf ${ML} ${y} Td (Total: ${total}   Confirmed: ${conf}   Pending: ${pend}   Cancelled: ${canc}) Tj ET`);
-      y -= 16;
-      /* separator line */
-      lines.push(`${ML} ${y} m ${W - MR} ${y} l S`);
+      lines.push('BT /F1 ' + fontSize + ' Tf ' + ML + ' ' + y + ' Td (Total: ' + total + '   Confirmed: ' + conf + '   Pending: ' + pend + '   Cancelled: ' + canc + ') Tj ET');
+      y -= 6;
+      lines.push('0.4 0.4 0.4 RG 1 w ' + ML + ' ' + y + ' m ' + (W - MR) + ' ' + y + ' l S 0 0 0 RG 0.5 w');
       y -= 10;
     }
 
-    /* table header */
-    lines.push('0.9 0.9 0.9 rg');  /* light grey fill */
-    lines.push(`${ML} ${y - rowH} ${W - ML - MR} ${rowH} re f`);
-    lines.push('0 0 0 rg');
-    let x = ML;
-    headers.forEach((h, i) => {
-      lines.push(`BT /F1 ${fontSize} Tf ${x + 2} ${y - rowH + 5} Td (${esc(h)}) Tj ET`);
-      x += cols[i];
+    /* table header row — blue background, white bold text */
+    lines.push('0.22 0.40 0.67 rg');
+    lines.push(ML + ' ' + (y - rowH) + ' ' + (W - ML - MR) + ' ' + rowH + ' re f');
+    lines.push('1 1 1 rg');
+    let hx = ML;
+    headers.forEach((h, ci) => {
+      lines.push('BT /F2 ' + fontSize + ' Tf ' + (hx + 3) + ' ' + (y - rowH + 5) + ' Td (' + esc(h) + ') Tj ET');
+      hx += cols[ci];
     });
+    lines.push('0 0 0 rg');
     y -= rowH;
 
-    /* grid lines */
+    /* data rows */
     pageRows.forEach((row, ri) => {
-      if (ri % 2 === 1) {
-        lines.push('0.96 0.97 0.99 rg');
-        lines.push(`${ML} ${y - rowH} ${W - ML - MR} ${rowH} re f`);
+      if (ri % 2 === 0) {
+        lines.push('0.95 0.96 0.98 rg');
+        lines.push(ML + ' ' + (y - rowH) + ' ' + (W - ML - MR) + ' ' + rowH + ' re f');
         lines.push('0 0 0 rg');
       }
-      x = ML;
+      let rx = ML; /* reset x for every row */
       row.forEach((cell, ci) => {
-        const maxChars = Math.floor(cols[ci] / 5.2);
+        const maxChars = Math.floor(cols[ci] / 5.5);
         const txt = String(cell).slice(0, maxChars);
-        lines.push(`BT /F1 ${fontSize} Tf ${x + 2} ${y - rowH + 5} Td (${esc(txt)}) Tj ET`);
-        x += cols[ci];
+        lines.push('BT /F1 ' + fontSize + ' Tf ' + (rx + 3) + ' ' + (y - rowH + 5) + ' Td (' + esc(txt) + ') Tj ET');
+        rx += cols[ci];
       });
       y -= rowH;
     });
 
     /* outer border */
-    const tableH = (pageRows.length + 1) * rowH;
-    lines.push(`0.7 0.7 0.7 RG`);
-    lines.push(`${ML} ${y} ${W - ML - MR} ${tableH} re S`);
-    lines.push('0 0 0 RG');
+    const tableH   = (pageRows.length + 1) * rowH;
+    const tableTop = y + pageRows.length * rowH + rowH;
+    lines.push('0.6 0.6 0.6 RG 0.5 w ' + ML + ' ' + y + ' ' + (W - ML - MR) + ' ' + tableH + ' re S 0 0 0 RG');
 
-    /* page number */
-    const totalPages = Math.max(1, Math.ceil(allRows.length / ROWS_PER_PAGE));
-    lines.push(`BT /F1 ${fontSize - 1} Tf ${W/2 - 30} 20 Td (Page ${p+1} of ${totalPages}) Tj ET`);
+    /* vertical column dividers */
+    lines.push('0.8 0.8 0.8 RG 0.3 w');
+    let cx = ML;
+    cols.slice(0, -1).forEach(cw => {
+      cx += cw;
+      lines.push(cx + ' ' + y + ' m ' + cx + ' ' + tableTop + ' l S');
+    });
+    lines.push('0 0 0 RG 0.5 w');
 
-    const stream = lines.join('\n');
-    const streamId = addObj(
-      `<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`
-    );
+    /* page number footer */
+    lines.push('BT /F1 ' + (fontSize - 1) + ' Tf ' + (W / 2 - 25) + ' 22 Td (Page ' + (p + 1) + ' of ' + totalPages + ') Tj ET');
+
+    /* create stream object — measure byte length after latin1 encode */
+    const stream    = lines.join('\n');
+    const streamBuf = Buffer.from(stream, 'latin1');
+    const streamId  = addObj('<< /Length ' + streamBuf.length + ' >>\nstream\n' + stream + '\nendstream');
     pages.push(streamId);
   }
 
-  /* font object */
-  const fontId = addObj('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  /* font objects: F1 = regular, F2 = bold */
+  const fontId  = addObj('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  const fontBId = addObj('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
 
   /* page objects */
   const pageIds = pages.map(streamId =>
     addObj(
-      `<< /Type /Page /Parent 0 /MediaBox [0 0 ${W} ${H}] ` +
-      `/Resources << /Font << /F1 ${fontId} 0 R >> >> ` +
-      `/Contents ${streamId} 0 R >>`
+      '<< /Type /Page /Parent 0 /MediaBox [0 0 ' + W + ' ' + H + '] ' +
+      '/Resources << /Font << /F1 ' + fontId + ' 0 R /F2 ' + fontBId + ' 0 R >> >> ' +
+      '/Contents ' + streamId + ' 0 R >>'
     )
   );
 
   /* pages tree */
   const pagesId = addObj(
-    `<< /Type /Pages /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] /Count ${pageIds.length} >>`
+    '<< /Type /Pages /Kids [' + pageIds.map(id => id + ' 0 R').join(' ') + '] /Count ' + pageIds.length + ' >>'
   );
 
-  /* fix /Parent refs */
+  /* patch /Parent placeholder now that pagesId is known */
   objects.forEach(o => {
     if (o.content.includes('/Type /Page ')) {
-      o.content = o.content.replace('/Parent 0', `/Parent ${pagesId}`);
+      o.content = o.content.replace('/Parent 0 ', '/Parent ' + pagesId + ' ');
     }
   });
 
   /* catalogue */
-  const catId = addObj(`<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
+  const catId = addObj('<< /Type /Catalog /Pages ' + pagesId + ' 0 R >>');
 
-  /* serialise */
-  const parts = ['%PDF-1.4\n'];
-  const offsets = [];
+  /* serialise to Buffer array (avoids encoding corruption) */
+  const bufParts = [Buffer.from('%PDF-1.4\n', 'latin1')];
+  const offsets  = [];
+
   objects.sort((a, b) => a.id - b.id).forEach(o => {
-    offsets[o.id] = parts.reduce((s, p) => s + Buffer.byteLength(p), 0);
-    parts.push(`${o.id} 0 obj\n${o.content}\nendobj\n`);
+    offsets[o.id] = bufParts.reduce((s, b) => s + b.length, 0);
+    bufParts.push(Buffer.from(o.id + ' 0 obj\n' + o.content + '\nendobj\n', 'latin1'));
   });
 
-  const xrefOffset = parts.reduce((s, p) => s + Buffer.byteLength(p), 0);
+  const xrefOffset = bufParts.reduce((s, b) => s + b.length, 0);
   const xrefCount  = oid;
-  let xref = `xref\n0 ${xrefCount}\n0000000000 65535 f \n`;
+  let xref = 'xref\n0 ' + xrefCount + '\n0000000000 65535 f \n';
   for (let i = 1; i < xrefCount; i++) {
     xref += String(offsets[i] || 0).padStart(10, '0') + ' 00000 n \n';
   }
-  parts.push(xref);
-  parts.push(`trailer\n<< /Size ${xrefCount} /Root ${catId} 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`);
+  bufParts.push(Buffer.from(xref, 'latin1'));
+  bufParts.push(Buffer.from(
+    'trailer\n<< /Size ' + xrefCount + ' /Root ' + catId + ' 0 R >>\nstartxref\n' + xrefOffset + '\n%%EOF\n',
+    'latin1'
+  ));
 
-  return Buffer.from(parts.join(''), 'latin1');
+  return Buffer.concat(bufParts);
 }
 
 app.post('/api/email-report', async (req, res) => {
   const { month, year, driver } = req.body || {};
   if (!month || !year) return res.status(400).json({ error: 'month and year are required' });
 
-  const apiKey     = process.env.SENDGRID_API_KEY;
-  const adminEmail = process.env.ADMIN_EMAIL;
+  const apiKey      = process.env.SENDGRID_API_KEY;
+  const adminEmail  = process.env.ADMIN_EMAIL;
+  /* SENDGRID_FROM must be a SendGrid-verified sender address.
+     Falls back to ADMIN_EMAIL if not set separately. */
+  const fromEmail   = process.env.SENDGRID_FROM || adminEmail;
 
   /* ── Fetch & filter bookings ── */
   let allBookings;
@@ -775,18 +793,18 @@ app.post('/api/email-report', async (req, res) => {
   });
 
   /* ── Build PDF ── */
-  const pdfBuf   = buildReportPdf(filtered, m, y, driver || '');
-  const pdfB64   = pdfBuf.toString('base64');
+  const pdfBuf  = buildReportPdf(filtered, m, y, driver || '');
+  const pdfB64  = pdfBuf.toString('base64');
   const MONTH_SRV = ['January','February','March','April','May','June',
     'July','August','September','October','November','December'];
-  const label   = `${MONTH_SRV[m - 1]}_${y}${driver ? '_' + driver.replace(/\s+/g,'_') : ''}`;
-  const subject = `TotahDa Booking Report — ${MONTH_SRV[m - 1]} ${y}${driver ? ' — ' + driver : ''}`;
+  const label   = MONTH_SRV[m - 1] + '_' + y + (driver ? '_' + driver.replace(/\s+/g, '_') : '');
+  const subject = 'TotahDa Booking Report - ' + MONTH_SRV[m - 1] + ' ' + y + (driver ? ' - ' + driver : '');
 
   /* ── If SendGrid not configured, return the PDF as a download ── */
   if (!apiKey || !adminEmail) {
     res.set({
       'Content-Type':        'application/pdf',
-      'Content-Disposition': `attachment; filename="TotahDa_Report_${label}.pdf"`,
+      'Content-Disposition': 'attachment; filename="TotahDa_Report_' + label + '.pdf"',
     });
     return res.send(pdfBuf);
   }
@@ -794,13 +812,15 @@ app.post('/api/email-report', async (req, res) => {
   /* ── Send via SendGrid ── */
   const payload = JSON.stringify({
     personalizations: [{ to: [{ email: adminEmail }] }],
-    from:    { email: adminEmail },
+    from:    { email: fromEmail, name: 'TotahDa Admin' },
     subject,
     content: [{ type: 'text/plain', value:
-      `Please find the TotahDa booking report for ${MONTH_SRV[m-1]} ${y}${driver ? ' (' + driver + ')' : ''} attached.\n\nTotal bookings: ${filtered.length}` }],
+      'Please find the TotahDa booking report for ' + MONTH_SRV[m - 1] + ' ' + y +
+      (driver ? ' (' + driver + ')' : '') +
+      ' attached.\n\nTotal bookings: ' + filtered.length }],
     attachments: [{
       content:     pdfB64,
-      filename:    `TotahDa_Report_${label}.pdf`,
+      filename:    'TotahDa_Report_' + label + '.pdf',
       type:        'application/pdf',
       disposition: 'attachment',
     }],
@@ -811,35 +831,35 @@ app.post('/api/email-report', async (req, res) => {
     path:     '/v3/mail/send',
     method:   'POST',
     headers:  {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type':  'application/json',
+      'Authorization':  'Bearer ' + apiKey,
+      'Content-Type':   'application/json',
       'Content-Length': Buffer.byteLength(payload),
     },
   };
 
-  new Promise((resolve, reject) => {
-    const req2 = https.request(options, r2 => {
-      let raw = '';
-      r2.on('data', chunk => { raw += chunk; });
-      r2.on('end',  () => resolve({ statusCode: r2.statusCode, body: raw }));
+  try {
+    const { statusCode, body: raw } = await new Promise((resolve, reject) => {
+      const req2 = https.request(options, r2 => {
+        let raw = '';
+        r2.on('data', chunk => { raw += chunk; });
+        r2.on('end',  () => resolve({ statusCode: r2.statusCode, body: raw }));
+      });
+      req2.on('error', reject);
+      req2.write(payload);
+      req2.end();
     });
-    req2.on('error', reject);
-    req2.write(payload);
-    req2.end();
-  })
-  .then(({ statusCode, body: raw }) => {
+
     if (statusCode >= 200 && statusCode < 300) {
-      console.log(`  📧 Report emailed to ${adminEmail} (${filtered.length} bookings)`);
+      console.log('  📧 Report emailed to ' + adminEmail + ' (' + filtered.length + ' bookings)');
       res.json({ status: 'sent', to: adminEmail, count: filtered.length });
     } else {
-      console.error(`  ❌ SendGrid error ${statusCode}:`, raw);
-      res.status(502).json({ error: `SendGrid error ${statusCode}`, detail: raw });
+      console.error('  ❌ SendGrid error ' + statusCode + ':', raw);
+      res.status(502).json({ error: 'SendGrid error ' + statusCode, detail: raw });
     }
-  })
-  .catch(err => {
+  } catch (err) {
     console.error('  ❌ Email network error:', err.message);
     res.status(500).json({ error: err.message });
-  });
+  }
 });
 
 /* ============================================================
