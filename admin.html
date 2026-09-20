@@ -189,9 +189,10 @@
         </div>
       </div>
       <div id="reportContent" class="report-content"></div>
-      <div class="modal-actions" style="margin-top:20px;flex-wrap:wrap;">
+      <div class="modal-actions" style="margin-top:20px;flex-wrap:wrap;gap:8px;">
         <button class="btn btn-secondary" data-i18n="adm_close" onclick="closeReportModal()">Close</button>
         <button class="btn btn-primary" data-i18n="adm_download_csv" onclick="downloadReport()">⬇ Download CSV</button>
+        <button class="btn btn-outline-report" id="emailReportBtn" onclick="sendReportEmail()">📧 Email Report</button>
       </div>
     </div>
   </div>

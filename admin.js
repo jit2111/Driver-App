@@ -559,6 +559,50 @@ async function generateReport() {
   container.innerHTML = html;
 }
 
+async function sendReportEmail() {
+  const month  = document.getElementById('reportMonth').value;
+  const year   = document.getElementById('reportYear').value;
+  const driver = document.getElementById('reportDriver').value;
+  const btn    = document.getElementById('emailReportBtn');
+
+  btn.disabled    = true;
+  btn.textContent = '⏳ Sending…';
+
+  try {
+    const res  = await fetch('/api/email-report', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ month, year, driver }),
+    });
+
+    /* If SendGrid is not configured the server returns the PDF directly */
+    if (res.headers.get('content-type')?.includes('application/pdf')) {
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      const mn   = MONTH_NAMES[parseInt(month, 10) - 1];
+      const lbl  = driver ? `_${driver.replace(/\s+/g, '_')}` : '';
+      a.href     = url;
+      a.download = `TotahDa_Report_${mn}_${year}${lbl}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('📥 PDF downloaded (email not configured — add SENDGRID_API_KEY & ADMIN_EMAIL to .env)');
+      return;
+    }
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
+
+    const mn = MONTH_NAMES[parseInt(month, 10) - 1];
+    showToast(`📧 Report emailed to ${data.to} (${data.count} booking${data.count !== 1 ? 's' : ''}) for ${mn} ${year}${driver ? ' – ' + driver : ''}`);
+  } catch (err) {
+    showToast(`❌ Failed to send report: ${err.message}`);
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = '📧 Email Report';
+  }
+}
+
 async function downloadReport() {
   const month    = parseInt(document.getElementById('reportMonth').value, 10);
   const year     = parseInt(document.getElementById('reportYear').value,  10);

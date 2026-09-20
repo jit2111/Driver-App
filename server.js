@@ -584,6 +584,265 @@ Then confirm the form is filled. Only discuss bookings.`;
 });
 
 /* ============================================================
+   EMAIL REPORT  /api/email-report
+   Generates a PDF of filtered bookings and emails it via
+   SendGrid HTTP API (no npm deps required).
+
+   Required env vars:
+     SENDGRID_API_KEY  — SendGrid API key (starts with SG.)
+     ADMIN_EMAIL       — recipient address for the report
+   ============================================================ */
+
+/**
+ * Build a minimal valid PDF from an array of booking rows.
+ * Returns a Buffer containing the complete PDF binary.
+ */
+function buildReportPdf(bookings, month, year, driverFilter) {
+  const MONTH_NAMES_SRV = ['January','February','March','April','May','June',
+    'July','August','September','October','November','December'];
+  const title = `TotahDa Booking Report — ${MONTH_NAMES_SRV[month - 1]} ${year}` +
+    (driverFilter ? ` — ${driverFilter}` : '');
+
+  /* ── helpers ── */
+  const esc = s => String(s || '')
+    .replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+
+  /* page dimensions (A4 portrait points) */
+  const W = 595, H = 842;
+  const ML = 40, MR = 40, MT = 60, rowH = 18, fontSize = 9, headerFontSize = 11;
+  const cols = [30, 130, 90, 65, 45, 70, 90, 90]; // column widths
+  const headers = ['#', 'Name', 'Phone', 'Date', 'Time', 'Status', 'Driver', 'Booked At'];
+
+  const objects = [];   // PDF objects [ {id, content} ]
+  let oid = 1;
+  const addObj = content => { const id = oid++; objects.push({ id, content }); return id; };
+
+  /* catalogue & page structure built later; collect page streams first */
+  const pages = [];
+
+  const allRows = bookings.map((b, i) => [
+    String(i + 1),
+    b.fullName  || '',
+    b.phone     || '',
+    b.tripDate  || '',
+    b.tripTime  || '',
+    b.status    || 'Pending',
+    b.driver    || '',
+    b.bookedAt  ? new Date(b.bookedAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '',
+  ]);
+
+  /* split into pages (approx 36 data rows fit per page) */
+  const ROWS_PER_PAGE = 36;
+  for (let p = 0; p < Math.max(1, Math.ceil(allRows.length / ROWS_PER_PAGE)); p++) {
+    const pageRows = allRows.slice(p * ROWS_PER_PAGE, (p + 1) * ROWS_PER_PAGE);
+    let y = H - MT;
+    const lines = [];
+
+    /* title (first page only) */
+    if (p === 0) {
+      lines.push(`BT /F1 ${headerFontSize} Tf ${ML} ${y} Td (${esc(title)}) Tj ET`);
+      y -= 20;
+      /* summary line */
+      const total = bookings.length;
+      const conf  = bookings.filter(b => b.status === 'Confirmed').length;
+      const pend  = bookings.filter(b => b.status === 'Pending').length;
+      const canc  = bookings.filter(b => b.status === 'Cancelled').length;
+      lines.push(`BT /F1 ${fontSize} Tf ${ML} ${y} Td (Total: ${total}   Confirmed: ${conf}   Pending: ${pend}   Cancelled: ${canc}) Tj ET`);
+      y -= 16;
+      /* separator line */
+      lines.push(`${ML} ${y} m ${W - MR} ${y} l S`);
+      y -= 10;
+    }
+
+    /* table header */
+    lines.push('0.9 0.9 0.9 rg');  /* light grey fill */
+    lines.push(`${ML} ${y - rowH} ${W - ML - MR} ${rowH} re f`);
+    lines.push('0 0 0 rg');
+    let x = ML;
+    headers.forEach((h, i) => {
+      lines.push(`BT /F1 ${fontSize} Tf ${x + 2} ${y - rowH + 5} Td (${esc(h)}) Tj ET`);
+      x += cols[i];
+    });
+    y -= rowH;
+
+    /* grid lines */
+    pageRows.forEach((row, ri) => {
+      if (ri % 2 === 1) {
+        lines.push('0.96 0.97 0.99 rg');
+        lines.push(`${ML} ${y - rowH} ${W - ML - MR} ${rowH} re f`);
+        lines.push('0 0 0 rg');
+      }
+      x = ML;
+      row.forEach((cell, ci) => {
+        const maxChars = Math.floor(cols[ci] / 5.2);
+        const txt = String(cell).slice(0, maxChars);
+        lines.push(`BT /F1 ${fontSize} Tf ${x + 2} ${y - rowH + 5} Td (${esc(txt)}) Tj ET`);
+        x += cols[ci];
+      });
+      y -= rowH;
+    });
+
+    /* outer border */
+    const tableH = (pageRows.length + 1) * rowH;
+    lines.push(`0.7 0.7 0.7 RG`);
+    lines.push(`${ML} ${y} ${W - ML - MR} ${tableH} re S`);
+    lines.push('0 0 0 RG');
+
+    /* page number */
+    const totalPages = Math.max(1, Math.ceil(allRows.length / ROWS_PER_PAGE));
+    lines.push(`BT /F1 ${fontSize - 1} Tf ${W/2 - 30} 20 Td (Page ${p+1} of ${totalPages}) Tj ET`);
+
+    const stream = lines.join('\n');
+    const streamId = addObj(
+      `<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`
+    );
+    pages.push(streamId);
+  }
+
+  /* font object */
+  const fontId = addObj('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+
+  /* page objects */
+  const pageIds = pages.map(streamId =>
+    addObj(
+      `<< /Type /Page /Parent 0 /MediaBox [0 0 ${W} ${H}] ` +
+      `/Resources << /Font << /F1 ${fontId} 0 R >> >> ` +
+      `/Contents ${streamId} 0 R >>`
+    )
+  );
+
+  /* pages tree */
+  const pagesId = addObj(
+    `<< /Type /Pages /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] /Count ${pageIds.length} >>`
+  );
+
+  /* fix /Parent refs */
+  objects.forEach(o => {
+    if (o.content.includes('/Type /Page ')) {
+      o.content = o.content.replace('/Parent 0', `/Parent ${pagesId}`);
+    }
+  });
+
+  /* catalogue */
+  const catId = addObj(`<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
+
+  /* serialise */
+  const parts = ['%PDF-1.4\n'];
+  const offsets = [];
+  objects.sort((a, b) => a.id - b.id).forEach(o => {
+    offsets[o.id] = parts.reduce((s, p) => s + Buffer.byteLength(p), 0);
+    parts.push(`${o.id} 0 obj\n${o.content}\nendobj\n`);
+  });
+
+  const xrefOffset = parts.reduce((s, p) => s + Buffer.byteLength(p), 0);
+  const xrefCount  = oid;
+  let xref = `xref\n0 ${xrefCount}\n0000000000 65535 f \n`;
+  for (let i = 1; i < xrefCount; i++) {
+    xref += String(offsets[i] || 0).padStart(10, '0') + ' 00000 n \n';
+  }
+  parts.push(xref);
+  parts.push(`trailer\n<< /Size ${xrefCount} /Root ${catId} 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`);
+
+  return Buffer.from(parts.join(''), 'latin1');
+}
+
+app.post('/api/email-report', async (req, res) => {
+  const { month, year, driver } = req.body || {};
+  if (!month || !year) return res.status(400).json({ error: 'month and year are required' });
+
+  const apiKey     = process.env.SENDGRID_API_KEY;
+  const adminEmail = process.env.ADMIN_EMAIL;
+
+  /* ── Fetch & filter bookings ── */
+  let allBookings;
+  try {
+    if (USE_MONGO) {
+      allBookings = await Booking.find({}).lean();
+    } else {
+      allBookings = readJSON(BOOKINGS_FILE);
+    }
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to fetch bookings: ' + e.message });
+  }
+
+  const m = parseInt(month, 10), y = parseInt(year, 10);
+  const filtered = allBookings.filter(b => {
+    if (!b.tripDate) return false;
+    const [by, bm] = b.tripDate.split('-').map(Number);
+    if (by !== y || bm !== m) return false;
+    if (driver && b.driver !== driver) return false;
+    return true;
+  });
+
+  /* ── Build PDF ── */
+  const pdfBuf   = buildReportPdf(filtered, m, y, driver || '');
+  const pdfB64   = pdfBuf.toString('base64');
+  const MONTH_SRV = ['January','February','March','April','May','June',
+    'July','August','September','October','November','December'];
+  const label   = `${MONTH_SRV[m - 1]}_${y}${driver ? '_' + driver.replace(/\s+/g,'_') : ''}`;
+  const subject = `TotahDa Booking Report — ${MONTH_SRV[m - 1]} ${y}${driver ? ' — ' + driver : ''}`;
+
+  /* ── If SendGrid not configured, return the PDF as a download ── */
+  if (!apiKey || !adminEmail) {
+    res.set({
+      'Content-Type':        'application/pdf',
+      'Content-Disposition': `attachment; filename="TotahDa_Report_${label}.pdf"`,
+    });
+    return res.send(pdfBuf);
+  }
+
+  /* ── Send via SendGrid ── */
+  const payload = JSON.stringify({
+    personalizations: [{ to: [{ email: adminEmail }] }],
+    from:    { email: adminEmail },
+    subject,
+    content: [{ type: 'text/plain', value:
+      `Please find the TotahDa booking report for ${MONTH_SRV[m-1]} ${y}${driver ? ' (' + driver + ')' : ''} attached.\n\nTotal bookings: ${filtered.length}` }],
+    attachments: [{
+      content:     pdfB64,
+      filename:    `TotahDa_Report_${label}.pdf`,
+      type:        'application/pdf',
+      disposition: 'attachment',
+    }],
+  });
+
+  const options = {
+    hostname: 'api.sendgrid.com',
+    path:     '/v3/mail/send',
+    method:   'POST',
+    headers:  {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type':  'application/json',
+      'Content-Length': Buffer.byteLength(payload),
+    },
+  };
+
+  new Promise((resolve, reject) => {
+    const req2 = https.request(options, r2 => {
+      let raw = '';
+      r2.on('data', chunk => { raw += chunk; });
+      r2.on('end',  () => resolve({ statusCode: r2.statusCode, body: raw }));
+    });
+    req2.on('error', reject);
+    req2.write(payload);
+    req2.end();
+  })
+  .then(({ statusCode, body: raw }) => {
+    if (statusCode >= 200 && statusCode < 300) {
+      console.log(`  📧 Report emailed to ${adminEmail} (${filtered.length} bookings)`);
+      res.json({ status: 'sent', to: adminEmail, count: filtered.length });
+    } else {
+      console.error(`  ❌ SendGrid error ${statusCode}:`, raw);
+      res.status(502).json({ error: `SendGrid error ${statusCode}`, detail: raw });
+    }
+  })
+  .catch(err => {
+    console.error('  ❌ Email network error:', err.message);
+    res.status(500).json({ error: err.message });
+  });
+});
+
+/* ============================================================
    Start
    ============================================================ */
 app.listen(PORT, async () => {
