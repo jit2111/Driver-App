@@ -119,6 +119,10 @@ async function saveDriver() {
       }
       localStorage.setItem(DRIVERS_KEY, JSON.stringify(drivers));
     }
+    writeLog(
+      _editingDriverIndex === null ? 'Driver Added' : 'Driver Updated',
+      `${name}${phone ? ' (' + phone + ')' : ''}`
+    );
     closeDriverModal();
     await renderDriverChips();
     await renderBookings(document.getElementById('searchInput').value);
@@ -131,6 +135,7 @@ async function removeDriver(index) {
   const drivers = await getDrivers();
   const name    = drivers[index].name;
   if (!confirm(`Remove "${name}" from the driver list? Existing bookings will keep the name.`)) return;
+  writeLog('Driver Removed', name);
 
   if (await isApiAvailable()) {
     await fetch('/api/drivers/' + index, { method: 'DELETE' });
@@ -283,6 +288,48 @@ function renderStats(bookings) {
 }
 
 /* ─────────────────────────────────────
+   Activity Logs
+───────────────────────────────────── */
+const LOGS_KEY = 'totahda_admin_logs';
+
+function writeLog(action, detail) {
+  const logs = JSON.parse(localStorage.getItem(LOGS_KEY) || '[]');
+  logs.unshift({ ts: new Date().toISOString(), action, detail });
+  if (logs.length > 500) logs.length = 500; // cap at 500 entries
+  localStorage.setItem(LOGS_KEY, JSON.stringify(logs));
+}
+
+function openLogsModal() {
+  const logs = JSON.parse(localStorage.getItem(LOGS_KEY) || '[]');
+  const el = document.getElementById('logsContent');
+  if (logs.length === 0) {
+    el.innerHTML = '<p class="logs-empty">No activity logged yet.</p>';
+  } else {
+    el.innerHTML = logs.map(l => {
+      const d = new Date(l.ts);
+      const dateStr = d.toLocaleDateString(undefined, { day:'2-digit', month:'short', year:'numeric' });
+      const timeStr = d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+      return `<div class="log-entry">
+        <span class="log-ts">${dateStr}, ${timeStr}</span>
+        <span class="log-action">${escHtml(l.action)}</span>
+        <span class="log-detail">${escHtml(l.detail)}</span>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('logsModal').classList.remove('hidden');
+}
+
+function closeLogsModal() {
+  document.getElementById('logsModal').classList.add('hidden');
+}
+
+function clearLogs() {
+  if (!confirm('Clear all activity logs?')) return;
+  localStorage.removeItem(LOGS_KEY);
+  openLogsModal();
+}
+
+/* ─────────────────────────────────────
    Search / Status / Driver assignment
 ───────────────────────────────────── */
 function filterBookings() {
@@ -290,16 +337,25 @@ function filterBookings() {
 }
 
 async function changeStatus(id, status) {
+  const all = await getBookings();
+  const b = all.find(x => x.id === id);
+  writeLog('Status Changed', `${b ? b.fullName : id} → ${status}`);
   await updateBookingStatus(id, status);
   renderBookings(document.getElementById('searchInput').value);
 }
 
 async function assignDriver(id, driver) {
+  const all = await getBookings();
+  const b = all.find(x => x.id === id);
+  writeLog('Driver Assigned', `${b ? b.fullName : id} → ${driver || 'Unassigned'}`);
   await updateBookingField(id, { driver });
   renderBookings(document.getElementById('searchInput').value);
 }
 
 async function updateTripField(id, field, value) {
+  const all = await getBookings();
+  const b = all.find(x => x.id === id);
+  writeLog('Field Updated', `${b ? b.fullName : id} — ${field}: ${value}`);
   await updateBookingField(id, { [field]: value });
   renderBookings(document.getElementById('searchInput').value);
 }
@@ -326,6 +382,7 @@ async function sendSMS(id) {
         sid:     data.sid,
         message: `SMS delivered to ${data.to}`,
       });
+      writeLog('SMS Sent', `To ${data.to} (SID: ${data.sid || 'n/a'})`);
       showToast(`✅ SMS sent to ${data.to}`);
 
     } else if (data.status === 'unconfigured') {
@@ -416,6 +473,9 @@ function closeDeleteModal() {
 
 async function confirmDelete() {
   if (pendingDeleteId) {
+    const all = await getBookings();
+    const b = all.find(x => x.id === pendingDeleteId);
+    writeLog('Booking Deleted', b ? `${b.fullName} (${b.phone}) on ${b.tripDate}` : pendingDeleteId);
     await deleteBooking(pendingDeleteId);
     pendingDeleteId = null;
   }
@@ -428,6 +488,7 @@ async function confirmDelete() {
 ───────────────────────────────────── */
 async function clearAllBookings() {
   if (!confirm('Are you sure you want to delete ALL bookings? This cannot be undone.')) return;
+  writeLog('All Bookings Cleared', 'Admin cleared entire bookings list');
   if (await isApiAvailable()) {
     await fetch('/api/bookings', { method: 'DELETE' });
   } else {

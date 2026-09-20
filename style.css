@@ -1209,6 +1209,87 @@ input.invalid {
 }
 
 /* ===========================
+   Logs Button
+=========================== */
+.btn-outline-logs {
+  background: transparent;
+  border: 2px solid #57606a;
+  color: #57606a;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s, color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-outline-logs:hover {
+  background: #57606a;
+  color: #fff;
+}
+
+/* ===========================
+   Logs Modal
+=========================== */
+.logs-modal-box {
+  max-width: 720px !important;
+  width: 100% !important;
+  text-align: left !important;
+  padding: 32px 28px !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.logs-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+.logs-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+.logs-empty {
+  color: #57606a;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 24px 0;
+}
+.log-entry {
+  display: grid;
+  grid-template-columns: 180px 150px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: #f6f8fa;
+  border: 1px solid #e5e7eb;
+  font-size: 0.82rem;
+}
+.log-entry:nth-child(even) {
+  background: #fff;
+}
+.log-ts {
+  color: #57606a;
+  white-space: nowrap;
+}
+.log-action {
+  font-weight: 700;
+  color: #1a3a8f;
+  white-space: nowrap;
+}
+.log-detail {
+  color: #1f2328;
+  word-break: break-word;
+}
+
+/* ===========================
    Report Modal
 =========================== */
 .report-modal-box {

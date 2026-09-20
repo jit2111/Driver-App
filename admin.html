@@ -74,6 +74,7 @@
           <input type="text" id="searchInput" class="search-input"
             placeholder="Search by name or phone…" data-i18n-placeholder="adm_search_ph" oninput="filterBookings()" />
           <button class="btn btn-outline-report" data-i18n="adm_report_btn" onclick="openReportModal()">📊 Report</button>
+          <button class="btn btn-outline-logs" onclick="openLogsModal()">📋 Logs</button>
           <button class="btn btn-danger" data-i18n="adm_clear_btn" onclick="clearAllBookings()">Clear All</button>
         </div>
       </div>
@@ -193,6 +194,20 @@
         <button class="btn btn-secondary" data-i18n="adm_close" onclick="closeReportModal()">Close</button>
         <button class="btn btn-primary" data-i18n="adm_download_csv" onclick="downloadReport()">⬇ Download CSV</button>
         <button class="btn btn-outline-report" id="emailReportBtn" onclick="sendReportEmail()">📧 Email Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logs modal -->
+  <div id="logsModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-box logs-modal-box">
+      <div class="logs-modal-header">
+        <h2 class="report-title" style="margin:0;">📋 Admin Activity Logs</h2>
+        <button class="btn btn-sm btn-outline-report" onclick="clearLogs()">🗑 Clear Logs</button>
+      </div>
+      <div id="logsContent" class="logs-content"></div>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeLogsModal()">Close</button>
       </div>
     </div>
   </div>
