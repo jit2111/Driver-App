@@ -231,10 +231,14 @@ async function renderBookings(filter = '') {
       <td>${escHtml(b.phone)}</td>
       <td>
         ${isToday ? '<span class="today-badge">Today</span> ' : ''}
-        ${formatDate(b.tripDate)}
+        <input type="date" class="inline-date-input" value="${b.tripDate || ''}"
+          onchange="updateTripField('${b.id}','tripDate',this.value)" />
         ${isClash ? '<span class="clash-badge">⚠ Clash</span>' : ''}
       </td>
-      <td>${formatTime(b.tripTime)}</td>
+      <td>
+        <input type="time" class="inline-date-input" value="${b.tripTime || ''}"
+          onchange="updateTripField('${b.id}','tripTime',this.value)" />
+      </td>
       <td>
         <select class="status-select trip-type-select" onchange="updateTripField('${b.id}','tripType',this.value)">
           ${['Short Trip','Long Trip'].map(t =>
