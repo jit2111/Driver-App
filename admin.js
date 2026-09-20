@@ -324,8 +324,26 @@ function closeLogsModal() {
 }
 
 function clearLogs() {
-  if (!confirm('Clear all activity logs?')) return;
+  document.getElementById('clearLogsPinInput').value = '';
+  document.getElementById('err-clearLogsPin').textContent = '';
+  document.getElementById('clearLogsPinModal').classList.remove('hidden');
+}
+
+function closeClearLogsPinModal() {
+  document.getElementById('clearLogsPinModal').classList.add('hidden');
+}
+
+function confirmClearLogs() {
+  const pin = document.getElementById('clearLogsPinInput').value.trim();
+  const err = document.getElementById('err-clearLogsPin');
+  if (pin !== '100') {
+    err.textContent = 'Incorrect PIN. Please try again.';
+    document.getElementById('clearLogsPinInput').classList.add('invalid');
+    return;
+  }
+  closeClearLogsPinModal();
   localStorage.removeItem(LOGS_KEY);
+  writeLog('Logs Cleared', 'Admin cleared all activity logs');
   openLogsModal();
 }
 
