@@ -621,10 +621,11 @@ function buildReportPdf(bookings, month, year, driverFilter) {
   const titleText = 'TotahDa Booking Report - ' + MONTH_NAMES_SRV[month - 1] + ' ' + year +
     (driverFilter ? ' - ' + safe(driverFilter) : '');
 
-  /* A4 portrait in points */
-  const W = 595, H = 842;
-  const ML = 40, MR = 40, MT = 55, rowH = 18, fontSize = 9, headerFontSize = 12;
-  const cols    = [22, 100, 80, 74, 44, 62, 80, 53]; /* sum = 515 = W-ML-MR */
+  /* A4 landscape in points (842×595) — wider table fits all columns */
+  const W = 842, H = 595;
+  const ML = 36, MR = 36, MT = 50, rowH = 18, fontSize = 9, headerFontSize = 12;
+  /* usable width = 842-36-36 = 770; col widths sum to 770 */
+  const cols = [22, 145, 96, 80, 56, 72, 105, 194]; /* #, Name, Phone, Date, Time, Status, Driver, Booked At */
   const headers = ['#', 'Name', 'Phone', 'Date', 'Time', 'Status', 'Driver', 'Booked At'];
 
   const objects = [];
