@@ -621,12 +621,12 @@ function buildReportPdf(bookings, month, year, driverFilter) {
   const titleText = 'TotahDa Booking Report - ' + MONTH_NAMES_SRV[month - 1] + ' ' + year +
     (driverFilter ? ' - ' + safe(driverFilter) : '');
 
-  /* A4 landscape in points (842×595) — wider table fits all columns */
-  const W = 842, H = 595;
+  /* A4 portrait in points — 6 columns fit comfortably */
+  const W = 595, H = 842;
   const ML = 36, MR = 36, MT = 50, rowH = 18, fontSize = 9, headerFontSize = 12;
-  /* usable width = 842-36-36 = 770; col widths sum to 770 */
-  const cols = [22, 145, 96, 80, 56, 72, 105, 194]; /* #, Name, Phone, Date, Time, Status, Driver, Booked At */
-  const headers = ['#', 'Name', 'Phone', 'Date', 'Time', 'Status', 'Driver', 'Booked At'];
+  /* usable width = 595-36-36 = 523; col widths sum to 523 */
+  const cols    = [22, 150, 100, 85, 76, 90]; /* #, Name, Phone, Date, Status, Driver */
+  const headers = ['#', 'Name', 'Phone', 'Date', 'Status', 'Driver'];
 
   const objects = [];
   let oid = 1;
@@ -638,13 +638,8 @@ function buildReportPdf(bookings, month, year, driverFilter) {
     b.fullName || '',
     b.phone    || '',
     fmtDate(b.tripDate),
-    fmtTime(b.tripTime),
     b.status   || 'Pending',
     b.driver   || '',
-    b.bookedAt ? new Date(b.bookedAt).toLocaleString('en-GB', {
-      day: '2-digit', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    }) : '',
   ]);
 
   const ROWS_PER_PAGE = 34;
