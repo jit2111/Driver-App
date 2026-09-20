@@ -569,11 +569,16 @@ async function sendReportEmail() {
   btn.textContent = '⏳ Sending…';
 
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000); /* 15 s client timeout */
+
     const res  = await fetch('/api/email-report', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ month, year, driver }),
+      signal:  controller.signal,
     });
+    clearTimeout(timer);
 
     /* If SendGrid is not configured the server returns the PDF directly */
     if (res.headers.get('content-type')?.includes('application/pdf')) {
@@ -596,7 +601,10 @@ async function sendReportEmail() {
     const mn = MONTH_NAMES[parseInt(month, 10) - 1];
     showToast(`📧 Report emailed to ${data.to} (${data.count} booking${data.count !== 1 ? 's' : ''}) for ${mn} ${year}${driver ? ' – ' + driver : ''}`);
   } catch (err) {
-    showToast(`❌ Failed to send report: ${err.message}`);
+    const msg = err.name === 'AbortError'
+      ? 'Request timed out — check your SENDGRID_API_KEY and network connection.'
+      : err.message;
+    showToast(`❌ ${msg}`);
   } finally {
     btn.disabled    = false;
     btn.textContent = '📧 Email Report';

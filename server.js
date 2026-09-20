@@ -830,6 +830,7 @@ app.post('/api/email-report', async (req, res) => {
     hostname: 'api.sendgrid.com',
     path:     '/v3/mail/send',
     method:   'POST',
+    timeout:  10000, /* 10 s — abort if SendGrid doesn't respond */
     headers:  {
       'Authorization':  'Bearer ' + apiKey,
       'Content-Type':   'application/json',
@@ -844,6 +845,7 @@ app.post('/api/email-report', async (req, res) => {
         r2.on('data', chunk => { raw += chunk; });
         r2.on('end',  () => resolve({ statusCode: r2.statusCode, body: raw }));
       });
+      req2.on('timeout', () => { req2.destroy(new Error('SendGrid request timed out after 10 s')); });
       req2.on('error', reject);
       req2.write(payload);
       req2.end();
