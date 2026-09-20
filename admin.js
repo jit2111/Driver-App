@@ -259,6 +259,7 @@ async function renderBookings(filter = '') {
       <td class="driver-cell">${driverCell}</td>
       <td style="color:#57606a;font-size:0.8rem;white-space:nowrap">${formatDateTime(b.bookedAt)}</td>
       <td>
+        <button class="btn btn-outline-report btn-sm" style="margin-bottom:4px;" onclick="openEditDateTimeModal('${b.id}')">📅 Edit Date/Time</button><br/>
         <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${b.id}')">Delete</button>
       </td>
     `;
@@ -414,6 +415,48 @@ function showToast(msg) {
 /* ─────────────────────────────────────
    Delete booking
 ───────────────────────────────────── */
+/* ─────────────────────────────────────
+   Edit Date / Time modal
+───────────────────────────────────── */
+let _editingDateTimeId = null;
+
+async function openEditDateTimeModal(id) {
+  const all = await getBookings();
+  const booking = all.find(b => b.id === id);
+  if (!booking) return;
+  _editingDateTimeId = id;
+  document.getElementById('editDateTimeBookingName').textContent =
+    `Booking for ${booking.fullName} (${booking.phone})`;
+  document.getElementById('editDateInput').value  = booking.tripDate || '';
+  document.getElementById('editTimeInput').value  = booking.tripTime || '';
+  document.getElementById('err-editDate').textContent = '';
+  document.getElementById('err-editTime').textContent = '';
+  document.getElementById('editDateTimeModal').classList.remove('hidden');
+}
+
+function closeEditDateTimeModal() {
+  document.getElementById('editDateTimeModal').classList.add('hidden');
+  _editingDateTimeId = null;
+}
+
+async function saveEditDateTime() {
+  const date = document.getElementById('editDateInput').value.trim();
+  const time = document.getElementById('editTimeInput').value.trim();
+  const dateErr = document.getElementById('err-editDate');
+  const timeErr = document.getElementById('err-editTime');
+  dateErr.textContent = '';
+  timeErr.textContent = '';
+
+  let valid = true;
+  if (!date) { dateErr.textContent = 'Please select a date.'; valid = false; }
+  if (!time) { timeErr.textContent = 'Please select a time.'; valid = false; }
+  if (!valid) return;
+
+  await updateBookingField(_editingDateTimeId, { tripDate: date, tripTime: time });
+  closeEditDateTimeModal();
+  renderBookings(document.getElementById('searchInput').value);
+}
+
 let pendingDeleteId = null;
 
 function openDeleteModal(id) {

@@ -147,6 +147,29 @@
     </div>
   </div>
 
+  <!-- Edit Date/Time modal -->
+  <div id="editDateTimeModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-icon">📅</div>
+      <h2 data-i18n="adm_edit_datetime_title">Edit Date &amp; Time</h2>
+      <p id="editDateTimeBookingName" style="color:#57606a;font-size:0.9rem;margin-bottom:16px;"></p>
+      <div class="form-group" style="text-align:left;margin-bottom:12px;">
+        <label for="editDateInput" data-i18n="adm_th_date">Date</label>
+        <input type="date" id="editDateInput" class="pin-input" style="font-size:1rem;padding:8px 12px;" />
+        <span class="field-error" id="err-editDate"></span>
+      </div>
+      <div class="form-group" style="text-align:left;margin-bottom:12px;">
+        <label for="editTimeInput" data-i18n="adm_th_time">Time</label>
+        <input type="time" id="editTimeInput" class="pin-input" style="font-size:1rem;padding:8px 12px;" />
+        <span class="field-error" id="err-editTime"></span>
+      </div>
+      <div class="modal-actions" style="margin-top:20px;">
+        <button class="btn btn-secondary" data-i18n="adm_cancel" onclick="closeEditDateTimeModal()">Cancel</button>
+        <button class="btn btn-primary" data-i18n="adm_save" onclick="saveEditDateTime()">Save</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Add/Edit Driver modal -->
   <div id="driverModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
