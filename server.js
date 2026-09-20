@@ -606,6 +606,18 @@ function buildReportPdf(bookings, month, year, driverFilter) {
   /* escape PDF string special chars after making safe */
   const esc  = s => safe(s).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
 
+  const PDF_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtDate = dateStr => {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    return PDF_MONTHS[parseInt(m, 10) - 1] + ' ' + parseInt(d, 10) + ', ' + y;
+  };
+  const fmtTime = timeStr => {
+    if (!timeStr) return '';
+    const [h, min] = timeStr.split(':').map(Number);
+    return (h % 12 || 12) + ':' + String(min).padStart(2, '0') + ' ' + (h >= 12 ? 'PM' : 'AM');
+  };
+
   const titleText = 'TotahDa Booking Report - ' + MONTH_NAMES_SRV[month - 1] + ' ' + year +
     (driverFilter ? ' - ' + safe(driverFilter) : '');
 
@@ -624,8 +636,8 @@ function buildReportPdf(bookings, month, year, driverFilter) {
     String(i + 1),
     b.fullName || '',
     b.phone    || '',
-    b.tripDate || '',
-    b.tripTime || '',
+    fmtDate(b.tripDate),
+    fmtTime(b.tripTime),
     b.status   || 'Pending',
     b.driver   || '',
     b.bookedAt ? new Date(b.bookedAt).toLocaleString('en-GB', {
