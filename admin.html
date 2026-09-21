@@ -60,6 +60,34 @@
       <div class="driver-chips" id="driverChips"></div>
     </div>
 
+    <!-- ── Leave Plans ── -->
+    <div class="card admin-card leave-mgmt-card" style="margin-bottom:24px;">
+      <div class="driver-mgmt-header">
+        <div>
+          <h2 class="card-title" data-i18n="adm_leave_title">🗓️ Driver Leave Plans</h2>
+          <p class="card-subtitle" data-i18n="adm_leave_sub">Track driver leave dates. Drivers on leave will be unavailable in the assignment dropdown.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" data-i18n="adm_leave_add_btn" onclick="openAddLeaveModal()">＋ Add Leave</button>
+      </div>
+      <div class="leave-table-wrapper">
+        <table class="leave-table">
+          <thead>
+            <tr>
+              <th data-i18n="adm_leave_th_driver">Driver</th>
+              <th data-i18n="adm_leave_th_from">From</th>
+              <th data-i18n="adm_leave_th_to">To</th>
+              <th data-i18n="adm_leave_th_reason">Reason</th>
+              <th data-i18n="adm_leave_th_action">Action</th>
+            </tr>
+          </thead>
+          <tbody id="leavesBody"></tbody>
+        </table>
+        <div id="leavesEmpty" class="leaves-empty hidden">
+          <p data-i18n="adm_leave_empty">No leave plans recorded. Drivers are all available.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- ── Bookings ── -->
     <div class="card admin-card">
       <div class="admin-header">
@@ -369,6 +397,39 @@
     </div>
   </div>
 
+  <!-- Add/Edit Leave Plan modal -->
+  <div id="leaveModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-icon">🗓️</div>
+      <h2 id="leaveModalTitle">Add Leave Plan</h2>
+      <div class="form-group" style="text-align:left;margin-bottom:10px;">
+        <label for="leaveDriverSelect" data-i18n="adm_leave_lbl_driver">Driver</label>
+        <select id="leaveDriverSelect" class="status-select" style="width:100%;max-width:100%;font-size:0.9rem;padding:7px 10px;">
+          <option value="">— Select Driver —</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="form-group" style="text-align:left;">
+          <label for="leaveFromDate" data-i18n="adm_leave_lbl_from">From Date</label>
+          <input type="date" id="leaveFromDate" style="width:100%;padding:7px 10px;border:1.5px solid #d0d7de;border-radius:8px;font-size:0.88rem;" />
+        </div>
+        <div class="form-group" style="text-align:left;">
+          <label for="leaveToDate" data-i18n="adm_leave_lbl_to">To Date</label>
+          <input type="date" id="leaveToDate" style="width:100%;padding:7px 10px;border:1.5px solid #d0d7de;border-radius:8px;font-size:0.88rem;" />
+        </div>
+      </div>
+      <div class="form-group" style="text-align:left;margin-bottom:10px;">
+        <label for="leaveReason" data-i18n="adm_leave_lbl_reason">Reason <span style="font-weight:400;color:#57606a;">(optional)</span></label>
+        <input type="text" id="leaveReason" placeholder="e.g. Personal, Medical, Vacation" style="width:100%;padding:7px 10px;border:1.5px solid #d0d7de;border-radius:8px;font-size:0.88rem;" autocomplete="off" />
+      </div>
+      <span class="field-error" id="err-leave" style="display:block;margin:4px 0 8px;"></span>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn btn-secondary" data-i18n="adm_cancel" onclick="closeLeaveModal()">Cancel</button>
+        <button class="btn btn-primary" data-i18n="adm_save" onclick="saveLeave()">Save</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Clear Logs PIN confirmation modal -->
   <div id="clearLogsPinModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box" style="max-width:360px;">
@@ -393,6 +454,7 @@
     if (sessionStorage.getItem('totahda_admin') === '1') {
       document.getElementById('adminLoginScreen').style.display = 'none';
       document.getElementById('adminMain').style.display = '';
+      renderLeaves();
     }
     function adminLogin() {
       const pin = document.getElementById('adminPin').value.trim();
@@ -402,6 +464,7 @@
         document.getElementById('adminLoginScreen').style.display = 'none';
         document.getElementById('adminMain').style.display = '';
         renderDriverChips();
+        renderLeaves();
         renderBookings();
       } else {
         document.getElementById('adminPin').classList.add('invalid');

@@ -6,6 +6,147 @@ const DRIVERS_KEY      = 'totahda_drivers';
 const DEFAULT_DRIVERS  = ['Pradip', 'Swapan', 'Ujjal', 'Totah', 'Samir'];
 
 /* ─────────────────────────────────────
+   Leave Plans  (localStorage only — lightweight, no server changes needed)
+   Each leave: { id, driver, fromDate, toDate, reason }
+───────────────────────────────────── */
+const LEAVES_KEY = 'totahda_driver_leaves';
+
+function getLeaves() {
+  try {
+    return JSON.parse(localStorage.getItem(LEAVES_KEY) || '[]');
+  } catch { return []; }
+}
+
+function saveLeaves(leaves) {
+  localStorage.setItem(LEAVES_KEY, JSON.stringify(leaves));
+}
+
+/** Return true if driverName is on leave on dateStr (YYYY-MM-DD) */
+function isDriverOnLeave(driverName, dateStr) {
+  return getLeaves().some(l =>
+    l.driver === driverName &&
+    dateStr >= l.fromDate &&
+    dateStr <= l.toDate
+  );
+}
+
+/* ─────────────────────────────────────
+   Leave section UI
+───────────────────────────────────── */
+async function renderLeaves() {
+  const leaves  = getLeaves();
+  const drivers = await getDrivers();
+  const tbody   = document.getElementById('leavesBody');
+  const empty   = document.getElementById('leavesEmpty');
+
+  if (leaves.length === 0) {
+    tbody.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  tbody.innerHTML = leaves.map((l, i) => `
+    <tr>
+      <td>${escHtml(l.driver)}</td>
+      <td>${formatDate(l.fromDate)}</td>
+      <td>${formatDate(l.toDate)}</td>
+      <td>${escHtml(l.reason || '—')}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-edit btn-sm" onclick="openEditLeaveModal(${i})">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLeave(${i})">✕ Remove</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+let _editingLeaveIndex = null;
+
+async function openAddLeaveModal() {
+  _editingLeaveIndex = null;
+  document.getElementById('leaveModalTitle').textContent = 'Add Leave Plan';
+  document.getElementById('err-leave').textContent = '';
+
+  /* populate driver dropdown */
+  const drivers = await getDrivers();
+  const sel = document.getElementById('leaveDriverSelect');
+  sel.innerHTML = `<option value="">— Select Driver —</option>` +
+    drivers.map(d => `<option value="${escHtml(d.name)}">${escHtml(d.name)}</option>`).join('');
+
+  document.getElementById('leaveFromDate').value  = '';
+  document.getElementById('leaveToDate').value    = '';
+  document.getElementById('leaveReason').value    = '';
+  document.getElementById('leaveModal').classList.remove('hidden');
+  setTimeout(() => sel.focus(), 50);
+}
+
+async function openEditLeaveModal(index) {
+  _editingLeaveIndex = index;
+  const leaves  = getLeaves();
+  const l       = leaves[index] || {};
+  document.getElementById('leaveModalTitle').textContent = 'Edit Leave Plan';
+  document.getElementById('err-leave').textContent = '';
+
+  const drivers = await getDrivers();
+  const sel = document.getElementById('leaveDriverSelect');
+  sel.innerHTML = `<option value="">— Select Driver —</option>` +
+    drivers.map(d => `<option value="${escHtml(d.name)}" ${d.name === l.driver ? 'selected' : ''}>${escHtml(d.name)}</option>`).join('');
+
+  document.getElementById('leaveFromDate').value  = l.fromDate || '';
+  document.getElementById('leaveToDate').value    = l.toDate   || '';
+  document.getElementById('leaveReason').value    = l.reason   || '';
+  document.getElementById('leaveModal').classList.remove('hidden');
+}
+
+function closeLeaveModal() {
+  _editingLeaveIndex = null;
+  document.getElementById('leaveModal').classList.add('hidden');
+}
+
+function saveLeave() {
+  const driver   = document.getElementById('leaveDriverSelect').value.trim();
+  const fromDate = document.getElementById('leaveFromDate').value;
+  const toDate   = document.getElementById('leaveToDate').value;
+  const reason   = document.getElementById('leaveReason').value.trim();
+  const errEl    = document.getElementById('err-leave');
+
+  if (!driver)   { errEl.textContent = 'Please select a driver.'; return; }
+  if (!fromDate) { errEl.textContent = 'Please set a start date.'; return; }
+  if (!toDate)   { errEl.textContent = 'Please set an end date.'; return; }
+  if (toDate < fromDate) { errEl.textContent = 'End date must be on or after start date.'; return; }
+
+  const leaves = getLeaves();
+  const entry  = { id: Date.now().toString(), driver, fromDate, toDate, reason };
+
+  if (_editingLeaveIndex === null) {
+    leaves.push(entry);
+    writeLog('adm_log_leave_added', `${driver}: ${fromDate} → ${toDate}`);
+  } else {
+    entry.id = leaves[_editingLeaveIndex].id || entry.id;
+    leaves[_editingLeaveIndex] = entry;
+    writeLog('adm_log_leave_updated', `${driver}: ${fromDate} → ${toDate}`);
+  }
+
+  saveLeaves(leaves);
+  closeLeaveModal();
+  renderLeaves();
+  /* refresh bookings table so on-leave drivers appear greyed out */
+  renderBookings(document.getElementById('searchInput').value);
+}
+
+function deleteLeave(index) {
+  const leaves = getLeaves();
+  const l = leaves[index];
+  if (!l) return;
+  if (!confirm(`Remove leave plan for "${l.driver}" (${l.fromDate} → ${l.toDate})?`)) return;
+  writeLog('adm_log_leave_removed', `${l.driver}: ${l.fromDate} → ${l.toDate}`);
+  leaves.splice(index, 1);
+  saveLeaves(leaves);
+  renderLeaves();
+  renderBookings(document.getElementById('searchInput').value);
+}
+
+/* ─────────────────────────────────────
    Driver storage  (API-first, localStorage fallback)
    Drivers are objects: { name, phone }
 ───────────────────────────────────── */
@@ -271,9 +412,10 @@ async function renderBookings(filter = '') {
       const driverCell = isConfirmed
         ? `<select class="status-select driver-select" onchange="assignDriver('${b.id}', this.value)">
              <option value="">— ${_t.adm_th_driver} —</option>
-             ${drivers.map(d =>
-                 `<option value="${d.name}" ${b.driver === d.name ? 'selected' : ''}>${escHtml(d.name)}</option>`
-               ).join('')}
+             ${drivers.map(d => {
+               const onLeave = isDriverOnLeave(d.name, b.tripDate || '');
+               return `<option value="${d.name}" ${b.driver === d.name ? 'selected' : ''} ${onLeave ? 'disabled' : ''}>${escHtml(d.name)}${onLeave ? ' 🚫 On Leave' : ''}</option>`;
+             }).join('')}
            </select>
            ${b.driver
              ? `<button class="btn btn-sms btn-sm" onclick="sendSMS('${b.id}')">📱 SMS</button>`
