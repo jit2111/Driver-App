@@ -1250,7 +1250,17 @@ input.invalid {
 /* ===========================
    Leave Management
 =========================== */
-.leave-mgmt-card {}
+.leave-section {
+  border-top: 1px solid #dbe4ff;
+  padding-top: 4px;
+}
+
+.leave-section-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f1c3f;
+  margin-bottom: 2px;
+}
 
 .leave-table-wrapper {
   overflow-x: auto;

@@ -194,7 +194,7 @@ const TRANSLATIONS = {
     adm_drv_save_err:        'Could not save driver.',
     adm_drv_remove_confirm:  'Remove "{name}" from the driver list? Existing bookings will keep the name.',
     /* leave plans */
-    adm_leave_title:         '🗓️ Driver Leave Plans',
+    adm_leave_title:         '🗓️ Leave Plans',
     adm_leave_sub:           'Track driver leave dates. Drivers on leave will be unavailable in the assignment dropdown.',
     adm_leave_add_btn:       '＋ Add Leave',
     adm_leave_th_driver:     'Driver',

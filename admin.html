@@ -58,32 +58,32 @@
         <button class="btn btn-primary btn-sm" data-i18n="adm_add_driver" onclick="openAddDriverModal()">＋ Add Driver</button>
       </div>
       <div class="driver-chips" id="driverChips"></div>
-    </div>
 
-    <!-- ── Leave Plans ── -->
-    <div class="card admin-card leave-mgmt-card" style="margin-bottom:24px;">
-      <div class="driver-mgmt-header">
-        <div>
-          <h2 class="card-title" data-i18n="adm_leave_title">🗓️ Driver Leave Plans</h2>
-          <p class="card-subtitle" data-i18n="adm_leave_sub">Track driver leave dates. Drivers on leave will be unavailable in the assignment dropdown.</p>
+      <!-- ── Leave Plans (inside Driver Management) ── -->
+      <div class="leave-section">
+        <div class="driver-mgmt-header" style="margin-top:24px;margin-bottom:12px;">
+          <div>
+            <h3 class="leave-section-title" data-i18n="adm_leave_title">🗓️ Leave Plans</h3>
+            <p class="card-subtitle" data-i18n="adm_leave_sub">Track driver leave dates. Drivers on leave will be unavailable in the assignment dropdown.</p>
+          </div>
+          <button class="btn btn-primary btn-sm" data-i18n="adm_leave_add_btn" onclick="openAddLeaveModal()">＋ Add Leave</button>
         </div>
-        <button class="btn btn-primary btn-sm" data-i18n="adm_leave_add_btn" onclick="openAddLeaveModal()">＋ Add Leave</button>
-      </div>
-      <div class="leave-table-wrapper">
-        <table class="leave-table">
-          <thead>
-            <tr>
-              <th data-i18n="adm_leave_th_driver">Driver</th>
-              <th data-i18n="adm_leave_th_from">From</th>
-              <th data-i18n="adm_leave_th_to">To</th>
-              <th data-i18n="adm_leave_th_reason">Reason</th>
-              <th data-i18n="adm_leave_th_action">Action</th>
-            </tr>
-          </thead>
-          <tbody id="leavesBody"></tbody>
-        </table>
-        <div id="leavesEmpty" class="leaves-empty hidden">
-          <p data-i18n="adm_leave_empty">No leave plans recorded. Drivers are all available.</p>
+        <div class="leave-table-wrapper">
+          <table class="leave-table">
+            <thead>
+              <tr>
+                <th data-i18n="adm_leave_th_driver">Driver</th>
+                <th data-i18n="adm_leave_th_from">From</th>
+                <th data-i18n="adm_leave_th_to">To</th>
+                <th data-i18n="adm_leave_th_reason">Reason</th>
+                <th data-i18n="adm_leave_th_action">Action</th>
+              </tr>
+            </thead>
+            <tbody id="leavesBody"></tbody>
+          </table>
+          <div id="leavesEmpty" class="leaves-empty hidden">
+            <p data-i18n="adm_leave_empty">No leave plans recorded. Drivers are all available.</p>
+          </div>
         </div>
       </div>
     </div>
