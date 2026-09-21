@@ -204,36 +204,38 @@ async function renderBookings(filter = '') {
 
   const drivers = await getDrivers();
 
-  /* ── group by tripDate (preserving sort order) ── */
-  const groups = [];
-  const groupIndex = {};
+  /* ── group by tripDate ── */
+  const groupMap = {};
   list.forEach(b => {
     const d = b.tripDate || '';
-    if (groupIndex[d] === undefined) {
-      groupIndex[d] = groups.length;
-      groups.push({ date: d, rows: [] });
-    }
-    groups[groupIndex[d]].rows.push(b);
+    if (!groupMap[d]) groupMap[d] = [];
+    groupMap[d].push(b);
   });
+
+  /* ── sort groups: today first, then ascending by date ── */
+  const groups = Object.keys(groupMap)
+    .sort((a, b) => {
+      if (a === today) return -1;
+      if (b === today) return  1;
+      return a < b ? -1 : a > b ? 1 : 0;
+    })
+    .map(d => ({ date: d, rows: groupMap[d] }));
 
   /* ── render one sub-table per date group ── */
   groups.forEach(group => {
-    const isToday     = group.date === today;
-    const dateLabel   = isToday
+    const isToday = group.date === today;
+    const groupId = 'dg_' + (group.date || 'unknown');
+    const dateLabel = isToday
       ? `<span class="today-badge">Today</span> ${formatDate(group.date)}`
       : formatDate(group.date);
-    const groupId     = 'dg_' + (group.date || 'unknown');
-    const clashInGroup = group.rows.some(b => slotCounts[`${b.tripDate}|${b.tripTime}`] > 1);
 
-    /* ── group header row (full-width, spans all columns, clickable) ── */
+    /* ── group header row: toggle arrow + date only ── */
     const headerTr = document.createElement('tr');
     headerTr.className = 'date-group-header' + (isToday ? ' date-group-today' : '');
     headerTr.innerHTML = `
       <td colspan="11" onclick="toggleDateGroup('${groupId}')">
         <span class="date-group-toggle" id="${groupId}_arrow">▾</span>
         ${dateLabel}
-        <span class="date-group-count">${group.rows.length} booking${group.rows.length !== 1 ? 's' : ''}</span>
-        ${clashInGroup ? '<span class="clash-badge" style="margin-left:8px">⚠ Clash</span>' : ''}
       </td>
     `;
     tbody.appendChild(headerTr);
