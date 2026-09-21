@@ -237,13 +237,38 @@ async function renderBookings(filter = '') {
     tbody.appendChild(headerTr);
 
     /* ── data rows ── */
+    const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+
     group.rows.forEach((b, i) => {
       const isConfirmed = b.status === 'Confirmed';
       const isClash     = slotCounts[`${b.tripDate}|${b.tripTime}`] > 1;
 
+      /* ── localise stored values for display ── */
+      const tripTypeDisplay = {
+        'Short Trip': _t.adm_bk_opt_short,
+        'Long Trip':  _t.adm_bk_opt_long,
+      }[b.tripType] || escHtml(b.tripType || _t.adm_bk_opt_short);
+
+      const choiceDisplay = {
+        'Regular': _t.adm_bk_opt_regular,
+        'Any':     _t.adm_bk_opt_any,
+      }[b.driverChoice] || escHtml(b.driverChoice || _t.adm_bk_opt_regular);
+
+      const statusLabels = {
+        'Confirmed': _t.adm_bk_opt_confirmed,
+        'Pending':   _t.adm_bk_opt_pending,
+        'Cancelled': _t.adm_bk_opt_cancelled,
+      };
+
+      const carSizeDisplay = {
+        'Small':  _t.adm_bk_opt_small,
+        'Medium': _t.adm_bk_opt_medium,
+        'Large':  _t.adm_bk_opt_large,
+      }[b.carSize] || escHtml(b.carSize || _t.adm_bk_opt_small);
+
       const driverCell = isConfirmed
         ? `<select class="status-select driver-select" onchange="assignDriver('${b.id}', this.value)">
-             <option value="">— Assign Driver —</option>
+             <option value="">— ${_t.adm_th_driver} —</option>
              ${drivers.map(d =>
                  `<option value="${d.name}" ${b.driver === d.name ? 'selected' : ''}>${escHtml(d.name)}</option>`
                ).join('')}
@@ -255,7 +280,7 @@ async function renderBookings(filter = '') {
         : `<span style="color:#57606a;font-size:0.8rem">${escHtml(b.driver || '—')}</span>`;
 
       const carBadge = b.needCar === 'Yes'
-        ? '<span class="car-size-badge car-size-' + (b.carSize||'').toLowerCase() + '" style="margin-left:5px;">&#x1F697; ' + escHtml(b.carSize||'Car') + '</span>'
+        ? '<span class="car-size-badge car-size-' + (b.carSize||'').toLowerCase() + '" style="margin-left:5px;">&#x1F697; ' + carSizeDisplay + '</span>'
         : '';
 
       const tr = document.createElement('tr');
@@ -271,20 +296,20 @@ async function renderBookings(filter = '') {
           ${isClash ? '<span class="clash-badge">⚠ Clash</span>' : ''}
         </td>
         <td>${formatTime(b.tripTime)}</td>
-        <td style="color:#57606a;font-size:0.85rem">${escHtml(b.tripType||'Short Trip')}</td>
-        <td style="color:#57606a;font-size:0.85rem">${escHtml(b.driverChoice||'Regular')}</td>
+        <td style="color:#57606a;font-size:0.85rem">${tripTypeDisplay}</td>
+        <td style="color:#57606a;font-size:0.85rem">${choiceDisplay}</td>
         <td>
           <select class="status-select" onchange="changeStatus('${b.id}', this.value)">
             ${['Confirmed','Pending','Cancelled'].map(s =>
-                `<option value="${s}" ${b.status === s ? 'selected' : ''}>${s}</option>`
+                `<option value="${s}" ${b.status === s ? 'selected' : ''}>${statusLabels[s] || s}</option>`
               ).join('')}
           </select>
         </td>
         <td class="driver-cell">${driverCell}</td>
         <td style="color:#57606a;font-size:0.8rem;white-space:nowrap">${formatDateTime(b.bookedAt)}</td>
         <td style="white-space:nowrap">
-          <button class="btn btn-edit btn-sm" onclick="openEditBookingModal('${b.id}')">✏️ Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${b.id}')">Delete</button>
+          <button class="btn btn-edit btn-sm" onclick="openEditBookingModal('${b.id}')">${_t.adm_edit_bk_title}</button>
+          <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${b.id}')">${_t.adm_delete}</button>
         </td>
       `;
       tbody.appendChild(tr);
