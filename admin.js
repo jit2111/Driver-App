@@ -46,6 +46,7 @@ async function renderLeaves() {
   }
   empty.classList.add('hidden');
 
+  const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   tbody.innerHTML = leaves.map((l, i) => `
     <tr>
       <td>${escHtml(l.driver)}</td>
@@ -53,8 +54,8 @@ async function renderLeaves() {
       <td>${formatDate(l.toDate)}</td>
       <td>${escHtml(l.reason || '—')}</td>
       <td style="white-space:nowrap;">
-        <button class="btn btn-edit btn-sm" onclick="openEditLeaveModal(${i})">✏️ Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteLeave(${i})">✕ Remove</button>
+        <button class="btn btn-edit btn-sm" onclick="openEditLeaveModal(${i})">✏️ ${_t.adm_edit}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLeave(${i})">✕ ${_t.adm_leave_remove}</button>
       </td>
     </tr>
   `).join('');
@@ -64,13 +65,14 @@ let _editingLeaveIndex = null;
 
 async function openAddLeaveModal() {
   _editingLeaveIndex = null;
-  document.getElementById('leaveModalTitle').textContent = 'Add Leave Plan';
+  const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  document.getElementById('leaveModalTitle').textContent = _t.adm_leave_modal_add;
   document.getElementById('err-leave').textContent = '';
 
   /* populate driver dropdown */
   const drivers = await getDrivers();
   const sel = document.getElementById('leaveDriverSelect');
-  sel.innerHTML = `<option value="">— Select Driver —</option>` +
+  sel.innerHTML = `<option value="">${_t.adm_leave_select_driver}</option>` +
     drivers.map(d => `<option value="${escHtml(d.name)}">${escHtml(d.name)}</option>`).join('');
 
   document.getElementById('leaveFromDate').value  = '';
@@ -84,12 +86,13 @@ async function openEditLeaveModal(index) {
   _editingLeaveIndex = index;
   const leaves  = getLeaves();
   const l       = leaves[index] || {};
-  document.getElementById('leaveModalTitle').textContent = 'Edit Leave Plan';
+  const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  document.getElementById('leaveModalTitle').textContent = _t.adm_leave_modal_edit;
   document.getElementById('err-leave').textContent = '';
 
   const drivers = await getDrivers();
   const sel = document.getElementById('leaveDriverSelect');
-  sel.innerHTML = `<option value="">— Select Driver —</option>` +
+  sel.innerHTML = `<option value="">${_t.adm_leave_select_driver}</option>` +
     drivers.map(d => `<option value="${escHtml(d.name)}" ${d.name === l.driver ? 'selected' : ''}>${escHtml(d.name)}</option>`).join('');
 
   document.getElementById('leaveFromDate').value  = l.fromDate || '';
@@ -110,10 +113,11 @@ function saveLeave() {
   const reason   = document.getElementById('leaveReason').value.trim();
   const errEl    = document.getElementById('err-leave');
 
-  if (!driver)   { errEl.textContent = 'Please select a driver.'; return; }
-  if (!fromDate) { errEl.textContent = 'Please set a start date.'; return; }
-  if (!toDate)   { errEl.textContent = 'Please set an end date.'; return; }
-  if (toDate < fromDate) { errEl.textContent = 'End date must be on or after start date.'; return; }
+  const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  if (!driver)   { errEl.textContent = _t.adm_leave_err_driver; return; }
+  if (!fromDate) { errEl.textContent = _t.adm_leave_err_from; return; }
+  if (!toDate)   { errEl.textContent = _t.adm_leave_err_to; return; }
+  if (toDate < fromDate) { errEl.textContent = _t.adm_leave_err_date_order; return; }
 
   const leaves = getLeaves();
   const entry  = { id: Date.now().toString(), driver, fromDate, toDate, reason };
@@ -138,7 +142,8 @@ function deleteLeave(index) {
   const leaves = getLeaves();
   const l = leaves[index];
   if (!l) return;
-  if (!confirm(`Remove leave plan for "${l.driver}" (${l.fromDate} → ${l.toDate})?`)) return;
+  const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  if (!confirm(_t.adm_leave_remove_confirm.replace('{driver}', l.driver).replace('{from}', l.fromDate).replace('{to}', l.toDate))) return;
   writeLog('adm_log_leave_removed', `${l.driver}: ${l.fromDate} → ${l.toDate}`);
   leaves.splice(index, 1);
   saveLeaves(leaves);
@@ -203,7 +208,8 @@ let _editingDriverIndex = null;
 
 function openAddDriverModal() {
   _editingDriverIndex = null;
-  document.getElementById('driverModalTitle').textContent  = 'Add Driver';
+  const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  document.getElementById('driverModalTitle').textContent  = _t.adm_drv_modal_add;
   document.getElementById('driverNameInput').value         = '';
   document.getElementById('driverPhoneInput').value        = '';
   document.getElementById('err-driverName').textContent    = '';
@@ -215,7 +221,8 @@ async function openEditDriverModal(index) {
   _editingDriverIndex = index;
   const drivers = await getDrivers();
   const d = drivers[index] || {};
-  document.getElementById('driverModalTitle').textContent  = 'Edit Driver';
+  const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  document.getElementById('driverModalTitle').textContent  = _t.adm_drv_modal_edit;
   document.getElementById('driverNameInput').value         = d.name  || '';
   document.getElementById('driverPhoneInput').value        = d.phone || '';
   document.getElementById('err-driverName').textContent    = '';
@@ -232,7 +239,8 @@ async function saveDriver() {
   const name  = document.getElementById('driverNameInput').value.trim();
   const phone = document.getElementById('driverPhoneInput').value.trim();
   const errEl = document.getElementById('err-driverName');
-  if (!name) { errEl.textContent = 'Please enter a driver name.'; return; }
+  const _tD = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  if (!name) { errEl.textContent = _tD.adm_drv_err_name; return; }
 
   try {
     if (await isApiAvailable()) {
@@ -246,12 +254,12 @@ async function saveDriver() {
       const drivers = await getDrivers();
       if (_editingDriverIndex === null) {
         if (drivers.some(d => d.name.toLowerCase() === name.toLowerCase())) {
-          errEl.textContent = 'A driver with this name already exists.'; return;
+          errEl.textContent = _tD.adm_drv_err_exists; return;
         }
         drivers.push({ name, phone });
       } else {
         if (drivers.some((d, i) => i !== _editingDriverIndex && d.name.toLowerCase() === name.toLowerCase())) {
-          errEl.textContent = 'A driver with this name already exists.'; return;
+          errEl.textContent = _tD.adm_drv_err_exists; return;
         }
         const oldName = drivers[_editingDriverIndex].name;
         drivers[_editingDriverIndex] = { name, phone };
@@ -322,9 +330,10 @@ async function renderBookings(filter = '') {
   const countEl    = document.getElementById('bookingCount');
   const today      = getTodayStr();
 
+  const _tC = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   countEl.textContent = all.length === 0
-    ? 'No bookings yet.'
-    : `${all.length} booking${all.length !== 1 ? 's' : ''} total`;
+    ? _tC.adm_count_empty
+    : _tC.adm_count_total.replace('{n}', all.length);
 
   renderStats(all);
   tbody.innerHTML = '';
@@ -365,7 +374,7 @@ async function renderBookings(filter = '') {
     const isToday = group.date === today;
     const groupId = 'dg_' + (group.date || 'unknown');
     const dateLabel = isToday
-      ? `<span class="today-badge">Today</span> ${formatDate(group.date)}`
+      ? `<span class="today-badge">${_t.adm_today_badge}</span> ${formatDate(group.date)}`
       : formatDate(group.date);
 
     /* ── group header row: toggle arrow + date only ── */
@@ -414,7 +423,7 @@ async function renderBookings(filter = '') {
              <option value="">— ${_t.adm_th_driver} —</option>
              ${drivers.map(d => {
                const onLeave = isDriverOnLeave(d.name, b.tripDate || '');
-               return `<option value="${d.name}" ${b.driver === d.name ? 'selected' : ''} ${onLeave ? 'disabled' : ''}>${escHtml(d.name)}${onLeave ? ' 🚫 On Leave' : ''}</option>`;
+               return `<option value="${d.name}" ${b.driver === d.name ? 'selected' : ''} ${onLeave ? 'disabled' : ''}>${escHtml(d.name)}${onLeave ? ' 🚫 ' + _t.adm_on_leave : ''}</option>`;
              }).join('')}
            </select>
            ${b.driver
@@ -437,7 +446,7 @@ async function renderBookings(filter = '') {
         <td>${escHtml(b.phone)}</td>
         <td>
           ${formatDate(b.tripDate)}
-          ${isClash ? '<span class="clash-badge">⚠ Clash</span>' : ''}
+          ${isClash ? `<span class="clash-badge">⚠ ${_t.adm_clash_badge}</span>` : ''}
         </td>
         <td>${formatTime(b.tripTime)}</td>
         <td style="color:#57606a;font-size:0.85rem">${tripTypeDisplay}</td>
@@ -737,10 +746,11 @@ async function saveNewBooking() {
   const needCar      = document.getElementById('newBk_needCar').value;
   const carSize      = document.getElementById('newBk_carSize').value;
 
-  if (!fullName) { errEl.textContent = 'Full name is required.'; return; }
-  if (!phone)    { errEl.textContent = 'Phone number is required.'; return; }
-  if (!tripDate) { errEl.textContent = 'Trip date is required.'; return; }
-  if (!tripTime) { errEl.textContent = 'Trip time is required.'; return; }
+  const _tV = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  if (!fullName) { errEl.textContent = _tV.adm_bk_err_name; return; }
+  if (!phone)    { errEl.textContent = _tV.adm_bk_err_phone; return; }
+  if (!tripDate) { errEl.textContent = _tV.adm_bk_err_date; return; }
+  if (!tripTime) { errEl.textContent = _tV.adm_bk_err_time; return; }
 
   const booking = {
     fullName, phone, tripDate, tripTime,
@@ -804,10 +814,11 @@ async function saveEditBooking() {
   const needCar      = document.getElementById('editBk_needCar').value;
   const carSize      = document.getElementById('editBk_carSize').value;
 
-  if (!fullName) { errEl.textContent = 'Full name is required.'; return; }
-  if (!phone)    { errEl.textContent = 'Phone number is required.'; return; }
-  if (!tripDate) { errEl.textContent = 'Trip date is required.'; return; }
-  if (!tripTime) { errEl.textContent = 'Trip time is required.'; return; }
+  const _tE = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  if (!fullName) { errEl.textContent = _tE.adm_bk_err_name; return; }
+  if (!phone)    { errEl.textContent = _tE.adm_bk_err_phone; return; }
+  if (!tripDate) { errEl.textContent = _tE.adm_bk_err_date; return; }
+  if (!tripTime) { errEl.textContent = _tE.adm_bk_err_time; return; }
 
   await updateBookingField(_editingBookingId, {
     fullName, phone, tripDate, tripTime,
@@ -888,7 +899,8 @@ async function openReportModal() {
   monthSel.value = now.getMonth() + 1;
 
   const drivers = await getDrivers();
-  drvSel.innerHTML = '<option value="">All Drivers</option>' +
+  const _tR = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  drvSel.innerHTML = `<option value="">${_tR.adm_report_all_drivers}</option>` +
     drivers.map(d => `<option value="${d.name}">${escHtml(d.name)}</option>`).join('');
 
   document.getElementById('reportModal').classList.remove('hidden');
@@ -921,13 +933,13 @@ async function generateReport() {
   const container = document.getElementById('reportContent');
 
   if (bookings.length === 0) {
-    container.innerHTML = `<p class="report-empty">No bookings found for ${MONTH_NAMES[month-1]} ${year}${driver ? ' – ' + escHtml(driver) : ''}.</p>`;
+    container.innerHTML = `<p class="report-empty">${_tR.adm_report_empty.replace('{month}', MONTH_NAMES[month-1]).replace('{year}', year).replace('{driver}', driver ? ' – ' + escHtml(driver) : '')}</p>`;
     return;
   }
 
   const driverMap = {};
   bookings.forEach(b => {
-    const key = b.driver || '(Unassigned)';
+    const key = b.driver || _tR.adm_report_unassigned;
     if (!driverMap[key]) driverMap[key] = [];
     driverMap[key].push(b);
   });
@@ -939,10 +951,10 @@ async function generateReport() {
 
   let html = `
     <div class="report-summary">
-      <div class="rsum-pill"><span class="rsum-val">${total}</span><span class="rsum-lbl">Total</span></div>
-      <div class="rsum-pill rsum-confirmed"><span class="rsum-val">${confirmed}</span><span class="rsum-lbl">Confirmed</span></div>
-      <div class="rsum-pill rsum-pending"><span class="rsum-val">${pending}</span><span class="rsum-lbl">Pending</span></div>
-      <div class="rsum-pill rsum-cancelled"><span class="rsum-val">${cancelled}</span><span class="rsum-lbl">Cancelled</span></div>
+      <div class="rsum-pill"><span class="rsum-val">${total}</span><span class="rsum-lbl">${_tR.adm_stat_total}</span></div>
+      <div class="rsum-pill rsum-confirmed"><span class="rsum-val">${confirmed}</span><span class="rsum-lbl">${_tR.adm_stat_confirmed}</span></div>
+      <div class="rsum-pill rsum-pending"><span class="rsum-val">${pending}</span><span class="rsum-lbl">${_tR.adm_stat_pending}</span></div>
+      <div class="rsum-pill rsum-cancelled"><span class="rsum-val">${cancelled}</span><span class="rsum-lbl">${_tR.adm_stat_cancelled}</span></div>
     </div>`;
 
   Object.entries(driverMap).sort((a, b) => a[0].localeCompare(b[0])).forEach(([drvName, rows]) => {
@@ -950,11 +962,11 @@ async function generateReport() {
     <div class="report-driver-section">
       <div class="report-driver-heading">
         <span class="report-drv-name">🚗 ${escHtml(drvName)}</span>
-        <span class="report-drv-count">${rows.length} booking${rows.length !== 1 ? 's' : ''}</span>
+        <span class="report-drv-count">${_tR.adm_report_bk_count.replace('{n}', rows.length)}</span>
       </div>
       <div class="report-table-wrap">
         <table class="report-table">
-          <thead><tr><th>#</th><th>Name</th><th>Phone</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+          <thead><tr><th>#</th><th>${_tR.adm_th_name}</th><th>${_tR.adm_th_phone}</th><th>${_tR.adm_th_date}</th><th>${_tR.adm_th_time}</th><th>${_tR.adm_th_status}</th></tr></thead>
           <tbody>
             ${rows.map((b, idx) => `
               <tr>
