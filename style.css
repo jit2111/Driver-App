@@ -864,6 +864,63 @@ input.invalid {
 }
 
 /* ===========================
+   Date group header rows
+=========================== */
+.date-group-header td {
+  background: linear-gradient(90deg, #eef2ff, #f3f4f6);
+  color: #1f2328;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 8px 12px;
+  border-top: 2px solid #c7d2fe;
+  border-bottom: 1px solid #dde3ff;
+  cursor: pointer;
+  user-select: none;
+  letter-spacing: 0.2px;
+}
+
+.date-group-header:hover td {
+  background: linear-gradient(90deg, #e0e7ff, #ede9fe);
+}
+
+.date-group-today td {
+  background: linear-gradient(90deg, #dcfce7, #d1fae5) !important;
+  border-top-color: #6ee7b7 !important;
+  color: #065f46;
+}
+
+.date-group-today:hover td {
+  background: linear-gradient(90deg, #bbf7d0, #a7f3d0) !important;
+}
+
+.date-group-toggle {
+  display: inline-block;
+  width: 16px;
+  text-align: center;
+  font-size: 0.9rem;
+  margin-right: 6px;
+  transition: transform 0.15s ease;
+  color: #6366f1;
+}
+
+.date-group-count {
+  display: inline-block;
+  background: #6366f1;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 10px;
+  margin-left: 10px;
+  vertical-align: middle;
+  letter-spacing: 0.3px;
+}
+
+.date-group-today .date-group-count {
+  background: #059669;
+}
+
+/* ===========================
    Clash row highlight
 =========================== */
 .row-clash {

@@ -204,59 +204,101 @@ async function renderBookings(filter = '') {
 
   const drivers = await getDrivers();
 
-  list.forEach((b, i) => {
-    const isConfirmed = b.status === 'Confirmed';
-    const isClash     = slotCounts[`${b.tripDate}|${b.tripTime}`] > 1;
-    const isToday     = b.tripDate === today;
+  /* ── group by tripDate (preserving sort order) ── */
+  const groups = [];
+  const groupIndex = {};
+  list.forEach(b => {
+    const d = b.tripDate || '';
+    if (groupIndex[d] === undefined) {
+      groupIndex[d] = groups.length;
+      groups.push({ date: d, rows: [] });
+    }
+    groups[groupIndex[d]].rows.push(b);
+  });
 
-    const driverCell = isConfirmed
-      ? `<select class="status-select driver-select" onchange="assignDriver('${b.id}', this.value)">
-           <option value="">— Assign Driver —</option>
-           ${drivers.map(d =>
-               `<option value="${d.name}" ${b.driver === d.name ? 'selected' : ''}>${escHtml(d.name)}</option>`
-             ).join('')}
-         </select>
-         ${b.driver
-           ? `<button class="btn btn-sms btn-sm" onclick="sendSMS('${b.id}')">📱 SMS</button>`
-           : ''
-         }`
-      : `<span style="color:#57606a;font-size:0.8rem">${escHtml(b.driver || '—')}</span>`;
+  /* ── render one sub-table per date group ── */
+  groups.forEach(group => {
+    const isToday     = group.date === today;
+    const dateLabel   = isToday
+      ? `<span class="today-badge">Today</span> ${formatDate(group.date)}`
+      : formatDate(group.date);
+    const groupId     = 'dg_' + (group.date || 'unknown');
+    const clashInGroup = group.rows.some(b => slotCounts[`${b.tripDate}|${b.tripTime}`] > 1);
 
-    const carBadge = b.needCar === 'Yes'
-      ? '<span class="car-size-badge car-size-' + (b.carSize||'').toLowerCase() + '"  style="margin-left:5px;">&#x1F697; ' + escHtml(b.carSize||'Car') + '</span>'
-      : '';
-
-    const tr = document.createElement('tr');
-    if (isClash) tr.classList.add('row-clash');
-    if (isToday) tr.classList.add('row-today');
-
-    tr.innerHTML = `
-      <td style="color:#57606a;font-size:0.8rem">${i + 1}</td>
-      <td><strong>${escHtml(b.fullName)}</strong>${carBadge}</td>
-      <td>${escHtml(b.phone)}</td>
-      <td>
-        ${isToday ? '<span class="today-badge">Today</span> ' : ''}
-        ${formatDate(b.tripDate)}
-        ${isClash ? '<span class="clash-badge">⚠ Clash</span>' : ''}
-      </td>
-      <td>${formatTime(b.tripTime)}</td>
-      <td style="color:#57606a;font-size:0.85rem">${escHtml(b.tripType||'Short Trip')}</td>
-      <td style="color:#57606a;font-size:0.85rem">${escHtml(b.driverChoice||'Regular')}</td>
-      <td>
-        <select class="status-select" onchange="changeStatus('${b.id}', this.value)">
-          ${['Confirmed','Pending','Cancelled'].map(s =>
-              `<option value="${s}" ${b.status === s ? 'selected' : ''}>${s}</option>`
-            ).join('')}
-        </select>
-      </td>
-      <td class="driver-cell">${driverCell}</td>
-      <td style="color:#57606a;font-size:0.8rem;white-space:nowrap">${formatDateTime(b.bookedAt)}</td>
-      <td>
-        <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${b.id}')">Delete</button>
+    /* ── group header row (full-width, spans all columns, clickable) ── */
+    const headerTr = document.createElement('tr');
+    headerTr.className = 'date-group-header' + (isToday ? ' date-group-today' : '');
+    headerTr.innerHTML = `
+      <td colspan="11" onclick="toggleDateGroup('${groupId}')">
+        <span class="date-group-toggle" id="${groupId}_arrow">▾</span>
+        ${dateLabel}
+        <span class="date-group-count">${group.rows.length} booking${group.rows.length !== 1 ? 's' : ''}</span>
+        ${clashInGroup ? '<span class="clash-badge" style="margin-left:8px">⚠ Clash</span>' : ''}
       </td>
     `;
-    tbody.appendChild(tr);
+    tbody.appendChild(headerTr);
+
+    /* ── data rows ── */
+    group.rows.forEach((b, i) => {
+      const isConfirmed = b.status === 'Confirmed';
+      const isClash     = slotCounts[`${b.tripDate}|${b.tripTime}`] > 1;
+
+      const driverCell = isConfirmed
+        ? `<select class="status-select driver-select" onchange="assignDriver('${b.id}', this.value)">
+             <option value="">— Assign Driver —</option>
+             ${drivers.map(d =>
+                 `<option value="${d.name}" ${b.driver === d.name ? 'selected' : ''}>${escHtml(d.name)}</option>`
+               ).join('')}
+           </select>
+           ${b.driver
+             ? `<button class="btn btn-sms btn-sm" onclick="sendSMS('${b.id}')">📱 SMS</button>`
+             : ''
+           }`
+        : `<span style="color:#57606a;font-size:0.8rem">${escHtml(b.driver || '—')}</span>`;
+
+      const carBadge = b.needCar === 'Yes'
+        ? '<span class="car-size-badge car-size-' + (b.carSize||'').toLowerCase() + '" style="margin-left:5px;">&#x1F697; ' + escHtml(b.carSize||'Car') + '</span>'
+        : '';
+
+      const tr = document.createElement('tr');
+      tr.dataset.group = groupId;
+      if (isClash) tr.classList.add('row-clash');
+
+      tr.innerHTML = `
+        <td style="color:#57606a;font-size:0.8rem">${i + 1}</td>
+        <td><strong>${escHtml(b.fullName)}</strong>${carBadge}</td>
+        <td>${escHtml(b.phone)}</td>
+        <td>
+          ${formatDate(b.tripDate)}
+          ${isClash ? '<span class="clash-badge">⚠ Clash</span>' : ''}
+        </td>
+        <td>${formatTime(b.tripTime)}</td>
+        <td style="color:#57606a;font-size:0.85rem">${escHtml(b.tripType||'Short Trip')}</td>
+        <td style="color:#57606a;font-size:0.85rem">${escHtml(b.driverChoice||'Regular')}</td>
+        <td>
+          <select class="status-select" onchange="changeStatus('${b.id}', this.value)">
+            ${['Confirmed','Pending','Cancelled'].map(s =>
+                `<option value="${s}" ${b.status === s ? 'selected' : ''}>${s}</option>`
+              ).join('')}
+          </select>
+        </td>
+        <td class="driver-cell">${driverCell}</td>
+        <td style="color:#57606a;font-size:0.8rem;white-space:nowrap">${formatDateTime(b.bookedAt)}</td>
+        <td>
+          <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${b.id}')">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
   });
+}
+
+function toggleDateGroup(groupId) {
+  const arrow = document.getElementById(groupId + '_arrow');
+  const rows  = document.querySelectorAll(`tr[data-group="${groupId}"]`);
+  const isOpen = arrow.textContent === '▾';
+  arrow.textContent = isOpen ? '▸' : '▾';
+  rows.forEach(r => { r.style.display = isOpen ? 'none' : ''; });
 }
 
 /* ─────────────────────────────────────
