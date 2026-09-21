@@ -135,6 +135,84 @@
     </div>
   </div>
 
+  <!-- Edit Booking modal -->
+  <div id="editBookingModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-box edit-booking-modal-box">
+      <div class="modal-icon">✏️</div>
+      <h2>Edit Booking</h2>
+      <div class="edit-bk-grid">
+
+        <div class="form-group">
+          <label for="editBk_fullName">Full Name</label>
+          <input type="text" id="editBk_fullName" autocomplete="off" />
+        </div>
+
+        <div class="form-group">
+          <label for="editBk_phone">Phone Number</label>
+          <input type="tel" id="editBk_phone" autocomplete="off" />
+        </div>
+
+        <div class="form-group">
+          <label for="editBk_tripDate">Trip Date</label>
+          <input type="date" id="editBk_tripDate" />
+        </div>
+
+        <div class="form-group">
+          <label for="editBk_tripTime">Trip Time</label>
+          <input type="time" id="editBk_tripTime" />
+        </div>
+
+        <div class="form-group">
+          <label for="editBk_tripType">Trip Type</label>
+          <select id="editBk_tripType" class="status-select">
+            <option value="Short Trip">Short Trip</option>
+            <option value="Long Trip">Long Trip</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="editBk_driverChoice">Driver Choice</label>
+          <select id="editBk_driverChoice" class="status-select">
+            <option value="Regular">Regular</option>
+            <option value="Any">Any</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="editBk_status">Status</label>
+          <select id="editBk_status" class="status-select">
+            <option value="Confirmed">Confirmed</option>
+            <option value="Pending">Pending</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="editBk_needCar">Need a Car?</label>
+          <select id="editBk_needCar" class="status-select" onchange="_toggleEditCarSize()">
+            <option value="No">No — driver only</option>
+            <option value="Yes">Yes — need a car</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="editBk_carSizeRow">
+          <label for="editBk_carSize">Car Size</label>
+          <select id="editBk_carSize" class="status-select">
+            <option value="Small">Small</option>
+            <option value="Medium">Medium</option>
+            <option value="Large">Large</option>
+          </select>
+        </div>
+
+      </div>
+      <span class="field-error" id="err-editBk" style="display:block;margin:6px 0 2px;"></span>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeEditBookingModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEditBooking()">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Confirm delete booking modal -->
   <div id="deleteModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box">

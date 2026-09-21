@@ -547,6 +547,15 @@ input.invalid {
   border-radius: 7px;
 }
 
+.btn-edit {
+  background: #2563eb;
+  color: #fff;
+}
+
+.btn-edit:hover {
+  background: #1d4ed8;
+}
+
 .btn-full {
   width: 100%;
   padding: 14px;
@@ -1329,6 +1338,75 @@ input.invalid {
 .log-detail {
   color: #1f2328;
   word-break: break-word;
+}
+
+/* ===========================
+   Edit Booking Modal
+=========================== */
+.edit-booking-modal-box {
+  max-width: 600px !important;
+  width: 100% !important;
+  text-align: left !important;
+  padding: 36px 32px !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.edit-booking-modal-box h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.edit-booking-modal-box .modal-icon {
+  text-align: center;
+}
+
+.edit-bk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+}
+
+.edit-bk-grid .form-group {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+}
+
+.edit-bk-grid label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #57606a;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.edit-bk-grid input,
+.edit-bk-grid select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #d0d7de;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  background: #f8fafc;
+  color: #1f2328;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.edit-bk-grid input:focus,
+.edit-bk-grid select:focus {
+  border-color: #2563eb;
+  background: #fff;
+}
+
+@media (max-width: 520px) {
+  .edit-bk-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ===========================

@@ -282,7 +282,8 @@ async function renderBookings(filter = '') {
         </td>
         <td class="driver-cell">${driverCell}</td>
         <td style="color:#57606a;font-size:0.8rem;white-space:nowrap">${formatDateTime(b.bookedAt)}</td>
-        <td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-edit btn-sm" onclick="openEditBookingModal('${b.id}')">✏️ Edit</button>
           <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${b.id}')">Delete</button>
         </td>
       `;
@@ -512,6 +513,69 @@ function showToast(msg) {
   toast.textContent = msg;
   toast.classList.remove('hidden');
   setTimeout(() => toast.classList.add('hidden'), 4000);
+}
+
+/* ─────────────────────────────────────
+   Edit booking modal
+───────────────────────────────────── */
+let _editingBookingId = null;
+
+async function openEditBookingModal(id) {
+  const all = await getBookings();
+  const b   = all.find(x => x.id === id);
+  if (!b) return;
+  _editingBookingId = id;
+
+  document.getElementById('editBk_fullName').value      = b.fullName    || '';
+  document.getElementById('editBk_phone').value         = b.phone       || '';
+  document.getElementById('editBk_tripDate').value      = b.tripDate    || '';
+  document.getElementById('editBk_tripTime').value      = b.tripTime    || '';
+  document.getElementById('editBk_tripType').value      = b.tripType    || 'Short Trip';
+  document.getElementById('editBk_driverChoice').value  = b.driverChoice|| 'Regular';
+  document.getElementById('editBk_status').value        = b.status      || 'Pending';
+  document.getElementById('editBk_needCar').value       = b.needCar     || 'No';
+  document.getElementById('editBk_carSize').value       = b.carSize     || 'Small';
+  document.getElementById('err-editBk').textContent     = '';
+  _toggleEditCarSize();
+  document.getElementById('editBookingModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('editBk_fullName').focus(), 50);
+}
+
+function _toggleEditCarSize() {
+  const show = document.getElementById('editBk_needCar').value === 'Yes';
+  document.getElementById('editBk_carSizeRow').style.display = show ? '' : 'none';
+}
+
+function closeEditBookingModal() {
+  _editingBookingId = null;
+  document.getElementById('editBookingModal').classList.add('hidden');
+}
+
+async function saveEditBooking() {
+  const errEl = document.getElementById('err-editBk');
+  const fullName     = document.getElementById('editBk_fullName').value.trim();
+  const phone        = document.getElementById('editBk_phone').value.trim();
+  const tripDate     = document.getElementById('editBk_tripDate').value;
+  const tripTime     = document.getElementById('editBk_tripTime').value;
+  const tripType     = document.getElementById('editBk_tripType').value;
+  const driverChoice = document.getElementById('editBk_driverChoice').value;
+  const status       = document.getElementById('editBk_status').value;
+  const needCar      = document.getElementById('editBk_needCar').value;
+  const carSize      = document.getElementById('editBk_carSize').value;
+
+  if (!fullName) { errEl.textContent = 'Full name is required.'; return; }
+  if (!phone)    { errEl.textContent = 'Phone number is required.'; return; }
+  if (!tripDate) { errEl.textContent = 'Trip date is required.'; return; }
+  if (!tripTime) { errEl.textContent = 'Trip time is required.'; return; }
+
+  await updateBookingField(_editingBookingId, {
+    fullName, phone, tripDate, tripTime,
+    tripType, driverChoice, status,
+    needCar, carSize: needCar === 'Yes' ? carSize : '',
+  });
+  writeLog('Booking Edited', `${fullName} (${phone}) on ${tripDate}`);
+  closeEditBookingModal();
+  renderBookings(document.getElementById('searchInput').value);
 }
 
 /* ─────────────────────────────────────
