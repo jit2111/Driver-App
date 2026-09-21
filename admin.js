@@ -516,6 +516,66 @@ function showToast(msg) {
 }
 
 /* ─────────────────────────────────────
+   New booking modal (admin-created)
+───────────────────────────────────── */
+function openNewBookingModal() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('newBk_fullName').value    = '';
+  document.getElementById('newBk_phone').value       = '';
+  document.getElementById('newBk_tripDate').value    = tomorrow.toISOString().split('T')[0];
+  document.getElementById('newBk_tripTime').value    = '10:00';
+  document.getElementById('newBk_tripType').value    = 'Short Trip';
+  document.getElementById('newBk_driverChoice').value= 'Regular';
+  document.getElementById('newBk_status').value      = 'Confirmed';
+  document.getElementById('newBk_needCar').value     = 'No';
+  document.getElementById('newBk_carSize').value     = 'Small';
+  document.getElementById('newBk_carSizeRow').style.display = 'none';
+  document.getElementById('err-newBk').textContent   = '';
+  document.getElementById('newBookingModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('newBk_fullName').focus(), 50);
+}
+
+function _toggleNewCarSize() {
+  const show = document.getElementById('newBk_needCar').value === 'Yes';
+  document.getElementById('newBk_carSizeRow').style.display = show ? '' : 'none';
+}
+
+function closeNewBookingModal() {
+  document.getElementById('newBookingModal').classList.add('hidden');
+}
+
+async function saveNewBooking() {
+  const errEl        = document.getElementById('err-newBk');
+  const fullName     = document.getElementById('newBk_fullName').value.trim();
+  const phone        = document.getElementById('newBk_phone').value.trim();
+  const tripDate     = document.getElementById('newBk_tripDate').value;
+  const tripTime     = document.getElementById('newBk_tripTime').value;
+  const tripType     = document.getElementById('newBk_tripType').value;
+  const driverChoice = document.getElementById('newBk_driverChoice').value;
+  const status       = document.getElementById('newBk_status').value;
+  const needCar      = document.getElementById('newBk_needCar').value;
+  const carSize      = document.getElementById('newBk_carSize').value;
+
+  if (!fullName) { errEl.textContent = 'Full name is required.'; return; }
+  if (!phone)    { errEl.textContent = 'Phone number is required.'; return; }
+  if (!tripDate) { errEl.textContent = 'Trip date is required.'; return; }
+  if (!tripTime) { errEl.textContent = 'Trip time is required.'; return; }
+
+  const booking = {
+    fullName, phone, tripDate, tripTime,
+    tripType, driverChoice, status,
+    needCar, carSize: needCar === 'Yes' ? carSize : '',
+    driver: '',
+  };
+
+  await addBooking(booking);
+  writeLog('Booking Created (Admin)', `${fullName} (${phone}) on ${tripDate}`);
+  closeNewBookingModal();
+  renderBookings(document.getElementById('searchInput').value);
+}
+
+/* ─────────────────────────────────────
    Edit booking modal
 ───────────────────────────────────── */
 let _editingBookingId = null;

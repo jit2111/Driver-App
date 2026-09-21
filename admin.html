@@ -73,6 +73,7 @@
         <div class="admin-actions">
           <input type="text" id="searchInput" class="search-input"
             placeholder="Search by name or phone…" data-i18n-placeholder="adm_search_ph" oninput="filterBookings()" />
+          <button class="btn btn-new-booking" onclick="openNewBookingModal()">＋ New Booking</button>
           <button class="btn btn-outline-report" data-i18n="adm_report_btn" onclick="openReportModal()">📊 Report</button>
           <button class="btn btn-outline-logs" onclick="openLogsModal()">📋 Logs</button>
           <button class="btn btn-danger" data-i18n="adm_clear_btn" onclick="clearAllBookings()">Clear All</button>
@@ -131,6 +132,84 @@
 
       <div class="modal-actions" style="margin-top:20px;">
         <button class="btn btn-primary" onclick="closeSmsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Booking modal (admin-created) -->
+  <div id="newBookingModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-box edit-booking-modal-box">
+      <div class="modal-icon">📋</div>
+      <h2>New Booking</h2>
+      <div class="edit-bk-grid">
+
+        <div class="form-group">
+          <label for="newBk_fullName">Full Name</label>
+          <input type="text" id="newBk_fullName" autocomplete="off" placeholder="e.g. Rahela Begum" />
+        </div>
+
+        <div class="form-group">
+          <label for="newBk_phone">Phone Number</label>
+          <input type="tel" id="newBk_phone" autocomplete="off" placeholder="e.g. +880 1700 000000" />
+        </div>
+
+        <div class="form-group">
+          <label for="newBk_tripDate">Trip Date</label>
+          <input type="date" id="newBk_tripDate" />
+        </div>
+
+        <div class="form-group">
+          <label for="newBk_tripTime">Trip Time</label>
+          <input type="time" id="newBk_tripTime" />
+        </div>
+
+        <div class="form-group">
+          <label for="newBk_tripType">Trip Type</label>
+          <select id="newBk_tripType" class="status-select">
+            <option value="Short Trip">Short Trip</option>
+            <option value="Long Trip">Long Trip</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="newBk_driverChoice">Driver Choice</label>
+          <select id="newBk_driverChoice" class="status-select">
+            <option value="Regular">Regular</option>
+            <option value="Any">Any</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="newBk_status">Status</label>
+          <select id="newBk_status" class="status-select">
+            <option value="Confirmed">Confirmed</option>
+            <option value="Pending">Pending</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="newBk_needCar">Need a Car?</label>
+          <select id="newBk_needCar" class="status-select" onchange="_toggleNewCarSize()">
+            <option value="No">No — driver only</option>
+            <option value="Yes">Yes — need a car</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="newBk_carSizeRow" style="display:none">
+          <label for="newBk_carSize">Car Size</label>
+          <select id="newBk_carSize" class="status-select">
+            <option value="Small">Small</option>
+            <option value="Medium">Medium</option>
+            <option value="Large">Large</option>
+          </select>
+        </div>
+
+      </div>
+      <span class="field-error" id="err-newBk" style="display:block;margin:6px 0 2px;"></span>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeNewBookingModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNewBooking()">📋 Create Booking</button>
       </div>
     </div>
   </div>
