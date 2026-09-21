@@ -898,8 +898,8 @@ async function openReportModal() {
   monthSel.value = now.getMonth() + 1;
 
   const drivers = await getDrivers();
-  const _tR = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
-  drvSel.innerHTML = `<option value="">${_tR.adm_report_all_drivers}</option>` +
+  const _tRo = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  drvSel.innerHTML = `<option value="">${_tRo.adm_report_all_drivers}</option>` +
     drivers.map(d => `<option value="${d.name}">${escHtml(d.name)}</option>`).join('');
 
   document.getElementById('reportModal').classList.remove('hidden');
@@ -925,6 +925,7 @@ async function getReportBookings() {
 }
 
 async function generateReport() {
+  const _tR      = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   const month    = parseInt(document.getElementById('reportMonth').value, 10);
   const year     = parseInt(document.getElementById('reportYear').value,  10);
   const driver   = document.getElementById('reportDriver').value;
