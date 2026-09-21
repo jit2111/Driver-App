@@ -230,7 +230,7 @@ async function renderBookings(filter = '') {
     headerTr.className = 'date-group-header' + (isToday ? ' date-group-today' : '');
     headerTr.innerHTML = `
       <td colspan="11" onclick="toggleDateGroup('${groupId}')">
-        <span class="date-group-toggle" id="${groupId}_arrow">▾</span>
+        <span class="date-group-toggle" id="${groupId}_arrow">−</span>
         ${dateLabel}
       </td>
     `;
@@ -294,8 +294,8 @@ async function renderBookings(filter = '') {
 function toggleDateGroup(groupId) {
   const arrow = document.getElementById(groupId + '_arrow');
   const rows  = document.querySelectorAll(`tr[data-group="${groupId}"]`);
-  const isOpen = arrow.textContent === '▾';
-  arrow.textContent = isOpen ? '▸' : '▾';
+  const isOpen = arrow.textContent === '−';
+  arrow.textContent = isOpen ? '+' : '−';
   rows.forEach(r => { r.style.display = isOpen ? 'none' : ''; });
 }
 

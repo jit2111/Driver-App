@@ -867,57 +867,42 @@ input.invalid {
    Date group header rows
 =========================== */
 .date-group-header td {
-  background: linear-gradient(90deg, #eef2ff, #f3f4f6);
-  color: #1f2328;
-  font-weight: 700;
-  font-size: 0.82rem;
-  padding: 8px 12px;
-  border-top: 2px solid #c7d2fe;
-  border-bottom: 1px solid #dde3ff;
+  background: #f0f4ff;
+  color: #1a3a8f;
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 10px 16px;
+  border-top: 3px solid #1a3a8f;
+  border-bottom: 1px solid #c7d2fe;
   cursor: pointer;
   user-select: none;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
 
 .date-group-header:hover td {
-  background: linear-gradient(90deg, #e0e7ff, #ede9fe);
+  background: #e5ecff;
 }
 
 .date-group-today td {
-  background: linear-gradient(90deg, #dcfce7, #d1fae5) !important;
-  border-top-color: #6ee7b7 !important;
-  color: #065f46;
+  background: #ecfdf5 !important;
+  border-top-color: #059669 !important;
+  color: #065f46 !important;
 }
 
 .date-group-today:hover td {
-  background: linear-gradient(90deg, #bbf7d0, #a7f3d0) !important;
+  background: #d1fae5 !important;
 }
 
 .date-group-toggle {
   display: inline-block;
-  width: 16px;
+  width: 18px;
   text-align: center;
-  font-size: 0.9rem;
-  margin-right: 6px;
-  transition: transform 0.15s ease;
-  color: #6366f1;
-}
-
-.date-group-count {
-  display: inline-block;
-  background: #6366f1;
-  color: #fff;
-  font-size: 0.68rem;
-  font-weight: 700;
-  padding: 1px 8px;
-  border-radius: 10px;
-  margin-left: 10px;
+  font-size: 1rem;
+  font-weight: 900;
+  margin-right: 8px;
+  color: inherit;
   vertical-align: middle;
-  letter-spacing: 0.3px;
-}
-
-.date-group-today .date-group-count {
-  background: #059669;
 }
 
 /* ===========================
