@@ -330,10 +330,10 @@ async function renderBookings(filter = '') {
   const countEl    = document.getElementById('bookingCount');
   const today      = getTodayStr();
 
-  const _tC = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  const _t  = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   countEl.textContent = all.length === 0
-    ? _tC.adm_count_empty
-    : _tC.adm_count_total.replace('{n}', all.length);
+    ? _t.adm_count_empty
+    : _t.adm_count_total.replace('{n}', all.length);
 
   renderStats(all);
   tbody.innerHTML = '';
@@ -389,7 +389,6 @@ async function renderBookings(filter = '') {
     tbody.appendChild(headerTr);
 
     /* ── data rows ── */
-    const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
 
     group.rows.forEach((b, i) => {
       const isConfirmed = b.status === 'Confirmed';
