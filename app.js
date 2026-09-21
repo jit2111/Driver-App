@@ -780,8 +780,16 @@ function formatDateTime(isoStr) {
       {
         key: 'tripType',
         ask: () => t.cw_ask_trip_type,
-        validate: (v) => ['short trip','long trip','short','long'].includes(v.toLowerCase().trim()) ? null : t.cw_err_trip_type,
-        parse: (v) => v.toLowerCase().includes('long') ? 'Long Trip' : 'Short Trip',
+        validate: (v) => {
+          const s = v.toLowerCase().trim();
+          const isLong  = s.includes('long') || s === t.cw_long_trip.toLowerCase();
+          const isShort = s.includes('short') || s === t.cw_short_trip.toLowerCase();
+          return (isLong || isShort) ? null : t.cw_err_trip_type;
+        },
+        parse: (v) => {
+          const s = v.toLowerCase().trim();
+          return (s.includes('long') || s === t.cw_long_trip.toLowerCase()) ? 'Long Trip' : 'Short Trip';
+        },
         chips: () => [
           { label: '🏙️ ' + t.cw_short_trip, value: t.cw_short_trip },
           { label: '🛣️ ' + t.cw_long_trip,  value: t.cw_long_trip  },
@@ -790,8 +798,16 @@ function formatDateTime(isoStr) {
       {
         key: 'driverChoice',
         ask: () => t.cw_ask_driver_choice,
-        validate: (v) => ['regular','any'].includes(v.toLowerCase().trim()) ? null : t.cw_err_driver_choice,
-        parse: (v) => v.toLowerCase().includes('any') ? 'Any' : 'Regular',
+        validate: (v) => {
+          const s = v.toLowerCase().trim();
+          const isAny     = s === 'any' || s === t.cw_any.toLowerCase();
+          const isRegular = s === 'regular' || s === t.cw_regular.toLowerCase();
+          return (isAny || isRegular) ? null : t.cw_err_driver_choice;
+        },
+        parse: (v) => {
+          const s = v.toLowerCase().trim();
+          return (s === 'any' || s === t.cw_any.toLowerCase()) ? 'Any' : 'Regular';
+        },
         chips: () => [
           { label: '⭐ ' + t.cw_regular, value: t.cw_regular },
           { label: '🎲 ' + t.cw_any,     value: t.cw_any     },
