@@ -119,23 +119,26 @@ async function saveDriver() {
       }
       localStorage.setItem(DRIVERS_KEY, JSON.stringify(drivers));
     }
+    const _t2 = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
     writeLog(
-      _editingDriverIndex === null ? 'Driver Added' : 'Driver Updated',
+      _editingDriverIndex === null ? _t2.adm_log_driver_added : _t2.adm_log_driver_updated,
       `${name}${phone ? ' (' + phone + ')' : ''}`
     );
     closeDriverModal();
     await renderDriverChips();
     await renderBookings(document.getElementById('searchInput').value);
   } catch (err) {
-    errEl.textContent = err.message || 'Could not save driver.';
+    const _te = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+    errEl.textContent = err.message || _te.adm_drv_save_err;
   }
 }
 
 async function removeDriver(index) {
+  const _t    = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   const drivers = await getDrivers();
   const name    = drivers[index].name;
-  if (!confirm(`Remove "${name}" from the driver list? Existing bookings will keep the name.`)) return;
-  writeLog('Driver Removed', name);
+  if (!confirm(_t.adm_drv_remove_confirm.replace('{name}', name))) return;
+  writeLog(_t.adm_log_driver_removed, name);
 
   if (await isApiAvailable()) {
     await fetch('/api/drivers/' + index, { method: 'DELETE' });
@@ -329,6 +332,7 @@ function toggleDateGroup(groupId) {
    Stats bar
 ───────────────────────────────────── */
 function renderStats(bookings) {
+  const _t         = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   const statsBar   = document.getElementById('statsBar');
   const total      = bookings.length;
   const confirmed  = bookings.filter(b => b.status === 'Confirmed').length;
@@ -338,11 +342,11 @@ function renderStats(bookings) {
   const todayCount = bookings.filter(b => b.tripDate === today).length;
 
   const pills = [
-    { label: 'Total Bookings', value: total },
-    { label: 'Confirmed',      value: confirmed },
-    { label: 'Pending',        value: pending },
-    { label: 'Cancelled',      value: cancelled },
-    { label: "Today's Rides",  value: todayCount, highlight: todayCount > 0 },
+    { label: _t.adm_stat_total,     value: total },
+    { label: _t.adm_stat_confirmed, value: confirmed },
+    { label: _t.adm_stat_pending,   value: pending },
+    { label: _t.adm_stat_cancelled, value: cancelled },
+    { label: _t.adm_stat_today,     value: todayCount, highlight: todayCount > 0 },
   ];
 
   statsBar.innerHTML = pills.map(p => `
@@ -366,10 +370,11 @@ function writeLog(action, detail) {
 }
 
 function openLogsModal() {
+  const _t   = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   const logs = JSON.parse(localStorage.getItem(LOGS_KEY) || '[]');
   const el = document.getElementById('logsContent');
   if (logs.length === 0) {
-    el.innerHTML = '<p class="logs-empty">No activity logged yet.</p>';
+    el.innerHTML = `<p class="logs-empty">${_t.adm_logs_empty}</p>`;
   } else {
     el.innerHTML = logs.map(l => {
       const d = new Date(l.ts);
@@ -400,16 +405,17 @@ function closeClearLogsPinModal() {
 }
 
 function confirmClearLogs() {
+  const _t  = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   const pin = document.getElementById('clearLogsPinInput').value.trim();
   const err = document.getElementById('err-clearLogsPin');
   if (pin !== '100') {
-    err.textContent = 'Incorrect PIN. Please try again.';
+    err.textContent = _t.adm_clrlogs_err_pin;
     document.getElementById('clearLogsPinInput').classList.add('invalid');
     return;
   }
   closeClearLogsPinModal();
   localStorage.removeItem(LOGS_KEY);
-  writeLog('Logs Cleared', 'Admin cleared all activity logs');
+  writeLog(_t.adm_log_logs_cleared, _t.adm_log_cleared_detail);
   openLogsModal();
 }
 
@@ -421,25 +427,29 @@ function filterBookings() {
 }
 
 async function changeStatus(id, status) {
+  const _t  = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   const all = await getBookings();
-  const b = all.find(x => x.id === id);
-  writeLog('Status Changed', `${b ? b.fullName : id} → ${status}`);
+  const b   = all.find(x => x.id === id);
+  const statusLabel = { Confirmed: _t.adm_bk_opt_confirmed, Pending: _t.adm_bk_opt_pending, Cancelled: _t.adm_bk_opt_cancelled }[status] || status;
+  writeLog(_t.adm_log_status_changed, `${b ? b.fullName : id} → ${statusLabel}`);
   await updateBookingStatus(id, status);
   renderBookings(document.getElementById('searchInput').value);
 }
 
 async function assignDriver(id, driver) {
+  const _t  = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   const all = await getBookings();
-  const b = all.find(x => x.id === id);
-  writeLog('Driver Assigned', `${b ? b.fullName : id} → ${driver || 'Unassigned'}`);
+  const b   = all.find(x => x.id === id);
+  writeLog(_t.adm_log_driver_assigned, `${b ? b.fullName : id} → ${driver || _t.adm_log_unassigned}`);
   await updateBookingField(id, { driver });
   renderBookings(document.getElementById('searchInput').value);
 }
 
 async function updateTripField(id, field, value) {
+  const _t  = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   const all = await getBookings();
-  const b = all.find(x => x.id === id);
-  writeLog('Field Updated', `${b ? b.fullName : id} — ${field}: ${value}`);
+  const b   = all.find(x => x.id === id);
+  writeLog(_t.adm_log_field_updated, `${b ? b.fullName : id} — ${field}: ${value}`);
   await updateBookingField(id, { [field]: value });
   renderBookings(document.getElementById('searchInput').value);
 }
@@ -459,6 +469,7 @@ async function sendSMS(id) {
     });
     const data = await res.json();
 
+    const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
     if (data.status === 'sent') {
       openSmsModal({
         state:   'sent',
@@ -466,16 +477,15 @@ async function sendSMS(id) {
         sid:     data.sid,
         message: `SMS delivered to ${data.to}`,
       });
-      writeLog('SMS Sent', `To ${data.to} (SID: ${data.sid || 'n/a'})`);
+      writeLog(_t.adm_log_sms_sent, `To ${data.to} (SID: ${data.sid || 'n/a'})`);
       showToast(`✅ SMS sent to ${data.to}`);
 
     } else if (data.status === 'unconfigured') {
-      /* Twilio not configured — show preview so admin can copy & send manually */
       openSmsModal({
         state:   'preview',
         name:    data.to,
         preview: data.preview,
-        message: 'Twilio not configured. Copy the message below to send manually.',
+        message: _t.adm_sms_preview_body,
       });
 
     } else {
@@ -493,6 +503,7 @@ async function sendSMS(id) {
    SMS modal
 ───────────────────────────────────── */
 function openSmsModal({ state, name, sid, preview: previewText, message }) {
+  const _t         = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   const modal      = document.getElementById('smsModal');
   const iconEl     = document.getElementById('smsModalIcon');
   const titleEl    = document.getElementById('smsModalTitle');
@@ -502,23 +513,23 @@ function openSmsModal({ state, name, sid, preview: previewText, message }) {
 
   if (state === 'sending') {
     iconEl.textContent  = '⏳';
-    titleEl.textContent = 'Sending SMS…';
-    bodyEl.textContent  = 'Please wait while the message is being sent.';
+    titleEl.textContent = _t.adm_sms_sending;
+    bodyEl.textContent  = _t.adm_sms_sending_body;
     previewBox.classList.add('hidden');
   } else if (state === 'sent') {
     iconEl.textContent  = '✅';
-    titleEl.textContent = 'SMS Sent!';
+    titleEl.textContent = _t.adm_sms_sent_title;
     bodyEl.textContent  = message + (sid ? `\nMessage SID: ${sid}` : '');
     previewBox.classList.add('hidden');
   } else if (state === 'preview') {
     iconEl.textContent    = '📋';
-    titleEl.textContent   = 'SMS Preview (Not Sent)';
+    titleEl.textContent   = _t.adm_sms_preview_title;
     bodyEl.textContent    = message;
     previewEl.textContent = previewText || '';
     previewBox.classList.remove('hidden');
   } else {
     iconEl.textContent  = '❌';
-    titleEl.textContent = 'SMS Failed';
+    titleEl.textContent = _t.adm_sms_fail_title;
     bodyEl.textContent  = message;
     previewBox.classList.add('hidden');
   }
@@ -595,7 +606,8 @@ async function saveNewBooking() {
   };
 
   await addBooking(booking);
-  writeLog('Booking Created (Admin)', `${fullName} (${phone}) on ${tripDate}`);
+  const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  writeLog(_t.adm_log_booking_created, `${fullName} (${phone}) on ${tripDate}`);
   closeNewBookingModal();
   renderBookings(document.getElementById('searchInput').value);
 }
@@ -658,7 +670,8 @@ async function saveEditBooking() {
     tripType, driverChoice, status,
     needCar, carSize: needCar === 'Yes' ? carSize : '',
   });
-  writeLog('Booking Edited', `${fullName} (${phone}) on ${tripDate}`);
+  const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  writeLog(_t.adm_log_booking_edited, `${fullName} (${phone}) on ${tripDate}`);
   closeEditBookingModal();
   renderBookings(document.getElementById('searchInput').value);
 }
@@ -680,9 +693,10 @@ function closeDeleteModal() {
 
 async function confirmDelete() {
   if (pendingDeleteId) {
+    const _t  = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
     const all = await getBookings();
-    const b = all.find(x => x.id === pendingDeleteId);
-    writeLog('Booking Deleted', b ? `${b.fullName} (${b.phone}) on ${b.tripDate}` : pendingDeleteId);
+    const b   = all.find(x => x.id === pendingDeleteId);
+    writeLog(_t.adm_log_booking_deleted, b ? `${b.fullName} (${b.phone}) on ${b.tripDate}` : pendingDeleteId);
     await deleteBooking(pendingDeleteId);
     pendingDeleteId = null;
   }
@@ -694,8 +708,9 @@ async function confirmDelete() {
    Clear all
 ───────────────────────────────────── */
 async function clearAllBookings() {
-  if (!confirm('Are you sure you want to delete ALL bookings? This cannot be undone.')) return;
-  writeLog('All Bookings Cleared', 'Admin cleared entire bookings list');
+  const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
+  if (!confirm(_t.adm_clear_confirm)) return;
+  writeLog(_t.adm_log_all_cleared, _t.adm_log_all_cleared_detail);
   if (await isApiAvailable()) {
     await fetch('/api/bookings', { method: 'DELETE' });
   } else {

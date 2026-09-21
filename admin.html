@@ -359,12 +359,12 @@
   <div id="logsModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box logs-modal-box">
       <div class="logs-modal-header">
-        <h2 class="report-title" style="margin:0;">📋 Admin Activity Logs</h2>
-        <button class="btn btn-sm btn-outline-report" onclick="clearLogs()">🗑 Clear Logs</button>
+        <h2 class="report-title" style="margin:0;" data-i18n="adm_logs_title">📋 Admin Activity Logs</h2>
+        <button class="btn btn-sm btn-outline-report" data-i18n="adm_logs_clear_btn" onclick="clearLogs()">🗑 Clear Logs</button>
       </div>
       <div id="logsContent" class="logs-content"></div>
       <div class="modal-actions" style="margin-top:16px;">
-        <button class="btn btn-secondary" onclick="closeLogsModal()">Close</button>
+        <button class="btn btn-secondary" data-i18n="adm_logs_close" onclick="closeLogsModal()">Close</button>
       </div>
     </div>
   </div>
@@ -373,16 +373,16 @@
   <div id="clearLogsPinModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-box" style="max-width:360px;">
       <div class="modal-icon">🔒</div>
-      <h2>Confirm PIN</h2>
-      <p style="color:#57606a;font-size:0.9rem;margin-bottom:16px;">Enter your Admin PIN to clear all logs.</p>
+      <h2 data-i18n="adm_clrlogs_title">Confirm PIN</h2>
+      <p style="color:#57606a;font-size:0.9rem;margin-bottom:16px;" data-i18n="adm_clrlogs_body">Enter your Admin PIN to clear all logs.</p>
       <div class="form-group" style="text-align:left;">
-        <label for="clearLogsPinInput">Admin PIN</label>
+        <label for="clearLogsPinInput" data-i18n="adm_clrlogs_lbl">Admin PIN</label>
         <input type="password" id="clearLogsPinInput" placeholder="••••" class="pin-input" />
         <span class="field-error" id="err-clearLogsPin"></span>
       </div>
       <div class="modal-actions" style="margin-top:20px;">
-        <button class="btn btn-secondary" onclick="closeClearLogsPinModal()">Cancel</button>
-        <button class="btn btn-danger" onclick="confirmClearLogs()">Clear Logs</button>
+        <button class="btn btn-secondary" data-i18n="adm_cancel" onclick="closeClearLogsPinModal()">Cancel</button>
+        <button class="btn btn-danger" data-i18n="adm_clrlogs_btn" onclick="confirmClearLogs()">Clear Logs</button>
       </div>
     </div>
   </div>
@@ -405,7 +405,7 @@
         renderBookings();
       } else {
         document.getElementById('adminPin').classList.add('invalid');
-        err.textContent = 'Incorrect PIN. Please try again.';
+        err.textContent = (TRANSLATIONS[currentLang] || TRANSLATIONS.en).adm_login_err_pin;
       }
     }
     document.getElementById('adminPin').addEventListener('keydown', function(e) {
