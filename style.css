@@ -557,12 +557,14 @@ input.invalid {
 }
 
 .btn-new-booking {
-  background: #059669;
-  color: #fff;
+  background: #fef9c3;
+  color: #854d0e;
+  border: 1.5px solid #fde047;
 }
 
 .btn-new-booking:hover {
-  background: #047857;
+  background: #fef08a;
+  border-color: #facc15;
 }
 
 .btn-full {
