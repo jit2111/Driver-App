@@ -119,9 +119,8 @@ async function saveDriver() {
       }
       localStorage.setItem(DRIVERS_KEY, JSON.stringify(drivers));
     }
-    const _t2 = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
     writeLog(
-      _editingDriverIndex === null ? _t2.adm_log_driver_added : _t2.adm_log_driver_updated,
+      _editingDriverIndex === null ? 'adm_log_driver_added' : 'adm_log_driver_updated',
       `${name}${phone ? ' (' + phone + ')' : ''}`
     );
     closeDriverModal();
@@ -138,7 +137,7 @@ async function removeDriver(index) {
   const drivers = await getDrivers();
   const name    = drivers[index].name;
   if (!confirm(_t.adm_drv_remove_confirm.replace('{name}', name))) return;
-  writeLog(_t.adm_log_driver_removed, name);
+  writeLog('adm_log_driver_removed', name);
 
   if (await isApiAvailable()) {
     await fetch('/api/drivers/' + index, { method: 'DELETE' });
@@ -362,27 +361,31 @@ function renderStats(bookings) {
 ───────────────────────────────────── */
 const LOGS_KEY = 'totahda_admin_logs';
 
-function writeLog(action, detail) {
+/* writeLog stores a translation KEY (not translated text) so it renders
+   correctly in whichever language is active when the log is viewed.       */
+function writeLog(actionKey, detail) {
   const logs = JSON.parse(localStorage.getItem(LOGS_KEY) || '[]');
-  logs.unshift({ ts: new Date().toISOString(), action, detail });
-  if (logs.length > 500) logs.length = 500; // cap at 500 entries
+  logs.unshift({ ts: new Date().toISOString(), actionKey, detail });
+  if (logs.length > 500) logs.length = 500;
   localStorage.setItem(LOGS_KEY, JSON.stringify(logs));
 }
 
 function openLogsModal() {
   const _t   = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   const logs = JSON.parse(localStorage.getItem(LOGS_KEY) || '[]');
-  const el = document.getElementById('logsContent');
+  const el   = document.getElementById('logsContent');
   if (logs.length === 0) {
     el.innerHTML = `<p class="logs-empty">${_t.adm_logs_empty}</p>`;
   } else {
     el.innerHTML = logs.map(l => {
-      const d = new Date(l.ts);
+      const d       = new Date(l.ts);
       const dateStr = d.toLocaleDateString(undefined, { day:'2-digit', month:'short', year:'numeric' });
       const timeStr = d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+      /* Translate the action: support new key-based entries and old plain-text entries */
+      const actionLabel = _t[l.actionKey] || l.actionKey || escHtml(l.action || '');
       return `<div class="log-entry">
         <span class="log-ts">${dateStr}, ${timeStr}</span>
-        <span class="log-action">${escHtml(l.action)}</span>
+        <span class="log-action">${escHtml(actionLabel)}</span>
         <span class="log-detail">${escHtml(l.detail)}</span>
       </div>`;
     }).join('');
@@ -415,7 +418,7 @@ function confirmClearLogs() {
   }
   closeClearLogsPinModal();
   localStorage.removeItem(LOGS_KEY);
-  writeLog(_t.adm_log_logs_cleared, _t.adm_log_cleared_detail);
+  writeLog('adm_log_logs_cleared', _t.adm_log_cleared_detail);
   openLogsModal();
 }
 
@@ -431,7 +434,7 @@ async function changeStatus(id, status) {
   const all = await getBookings();
   const b   = all.find(x => x.id === id);
   const statusLabel = { Confirmed: _t.adm_bk_opt_confirmed, Pending: _t.adm_bk_opt_pending, Cancelled: _t.adm_bk_opt_cancelled }[status] || status;
-  writeLog(_t.adm_log_status_changed, `${b ? b.fullName : id} → ${statusLabel}`);
+  writeLog('adm_log_status_changed', `${b ? b.fullName : id} → ${statusLabel}`);
   await updateBookingStatus(id, status);
   renderBookings(document.getElementById('searchInput').value);
 }
@@ -440,16 +443,15 @@ async function assignDriver(id, driver) {
   const _t  = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   const all = await getBookings();
   const b   = all.find(x => x.id === id);
-  writeLog(_t.adm_log_driver_assigned, `${b ? b.fullName : id} → ${driver || _t.adm_log_unassigned}`);
+  writeLog('adm_log_driver_assigned', `${b ? b.fullName : id} → ${driver || _t.adm_log_unassigned}`);
   await updateBookingField(id, { driver });
   renderBookings(document.getElementById('searchInput').value);
 }
 
 async function updateTripField(id, field, value) {
-  const _t  = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   const all = await getBookings();
   const b   = all.find(x => x.id === id);
-  writeLog(_t.adm_log_field_updated, `${b ? b.fullName : id} — ${field}: ${value}`);
+  writeLog('adm_log_field_updated', `${b ? b.fullName : id} — ${field}: ${value}`);
   await updateBookingField(id, { [field]: value });
   renderBookings(document.getElementById('searchInput').value);
 }
@@ -477,7 +479,7 @@ async function sendSMS(id) {
         sid:     data.sid,
         message: `SMS delivered to ${data.to}`,
       });
-      writeLog(_t.adm_log_sms_sent, `To ${data.to} (SID: ${data.sid || 'n/a'})`);
+      writeLog('adm_log_sms_sent', `To ${data.to} (SID: ${data.sid || 'n/a'})`);
       showToast(`✅ SMS sent to ${data.to}`);
 
     } else if (data.status === 'unconfigured') {
@@ -607,7 +609,7 @@ async function saveNewBooking() {
 
   await addBooking(booking);
   const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
-  writeLog(_t.adm_log_booking_created, `${fullName} (${phone}) on ${tripDate}`);
+  writeLog('adm_log_booking_created', `${fullName} (${phone}) on ${tripDate}`);
   closeNewBookingModal();
   renderBookings(document.getElementById('searchInput').value);
 }
@@ -671,7 +673,7 @@ async function saveEditBooking() {
     needCar, carSize: needCar === 'Yes' ? carSize : '',
   });
   const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
-  writeLog(_t.adm_log_booking_edited, `${fullName} (${phone}) on ${tripDate}`);
+  writeLog('adm_log_booking_edited', `${fullName} (${phone}) on ${tripDate}`);
   closeEditBookingModal();
   renderBookings(document.getElementById('searchInput').value);
 }
@@ -696,7 +698,7 @@ async function confirmDelete() {
     const _t  = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
     const all = await getBookings();
     const b   = all.find(x => x.id === pendingDeleteId);
-    writeLog(_t.adm_log_booking_deleted, b ? `${b.fullName} (${b.phone}) on ${b.tripDate}` : pendingDeleteId);
+    writeLog('adm_log_booking_deleted', b ? `${b.fullName} (${b.phone}) on ${b.tripDate}` : pendingDeleteId);
     await deleteBooking(pendingDeleteId);
     pendingDeleteId = null;
   }
@@ -710,7 +712,7 @@ async function confirmDelete() {
 async function clearAllBookings() {
   const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   if (!confirm(_t.adm_clear_confirm)) return;
-  writeLog(_t.adm_log_all_cleared, _t.adm_log_all_cleared_detail);
+  writeLog('adm_log_all_cleared', _t.adm_log_all_cleared_detail);
   if (await isApiAvailable()) {
     await fetch('/api/bookings', { method: 'DELETE' });
   } else {
