@@ -212,13 +212,9 @@ async function renderBookings(filter = '') {
     groupMap[d].push(b);
   });
 
-  /* ── sort groups: today first, then ascending by date ── */
+  /* ── sort groups: oldest → newest ── */
   const groups = Object.keys(groupMap)
-    .sort((a, b) => {
-      if (a === today) return -1;
-      if (b === today) return  1;
-      return a < b ? -1 : a > b ? 1 : 0;
-    })
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
     .map(d => ({ date: d, rows: groupMap[d] }));
 
   /* ── render one sub-table per date group ── */
