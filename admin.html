@@ -451,16 +451,10 @@
   <script src="app.js?v=8"></script>
   <script src="admin.js?v=9"></script>
   <script>
-    if (sessionStorage.getItem('totahda_admin') === '1') {
-      document.getElementById('adminLoginScreen').style.display = 'none';
-      document.getElementById('adminMain').style.display = '';
-      renderLeaves();
-    }
     function adminLogin() {
       const pin = document.getElementById('adminPin').value.trim();
       const err = document.getElementById('err-adminPin');
       if (pin === '100') {
-        sessionStorage.setItem('totahda_admin', '1');
         document.getElementById('adminLoginScreen').style.display = 'none';
         document.getElementById('adminMain').style.display = '';
         renderDriverChips();
