@@ -6,24 +6,24 @@ const DRIVERS_KEY      = 'totahda_drivers';
 const DEFAULT_DRIVERS  = ['Pradip', 'Swapan', 'Ujjal', 'Totah', 'Samir'];
 
 /* ─────────────────────────────────────
-   Leave Plans  (localStorage only — lightweight, no server changes needed)
+   Leave Plans  — live via /api/leaves
    Each leave: { id, driver, fromDate, toDate, reason }
 ───────────────────────────────────── */
-const LEAVES_KEY = 'totahda_driver_leaves';
 
-function getLeaves() {
+/* In-memory cache so isDriverOnLeave() stays synchronous inside renderBookings */
+let _leavesCache = [];
+
+async function getLeaves() {
   try {
-    return JSON.parse(localStorage.getItem(LEAVES_KEY) || '[]');
-  } catch { return []; }
-}
-
-function saveLeaves(leaves) {
-  localStorage.setItem(LEAVES_KEY, JSON.stringify(leaves));
+    const r = await fetch('/api/leaves');
+    if (r.ok) { _leavesCache = await r.json(); return _leavesCache; }
+  } catch { /* fall through */ }
+  return _leavesCache;
 }
 
 /** Return true if driverName is on leave on dateStr (YYYY-MM-DD) */
 function isDriverOnLeave(driverName, dateStr) {
-  return getLeaves().some(l =>
+  return _leavesCache.some(l =>
     l.driver === driverName &&
     dateStr >= l.fromDate &&
     dateStr <= l.toDate
@@ -34,7 +34,7 @@ function isDriverOnLeave(driverName, dateStr) {
    Leave section UI
 ───────────────────────────────────── */
 async function renderLeaves() {
-  const leaves  = getLeaves();
+  const leaves  = await getLeaves();
   const drivers = await getDrivers();
   const tbody   = document.getElementById('leavesBody');
   const empty   = document.getElementById('leavesEmpty');
@@ -84,7 +84,7 @@ async function openAddLeaveModal() {
 
 async function openEditLeaveModal(index) {
   _editingLeaveIndex = index;
-  const leaves  = getLeaves();
+  const leaves  = await getLeaves();
   const l       = leaves[index] || {};
   const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   document.getElementById('leaveModalTitle').textContent = _t.adm_leave_modal_edit;
@@ -106,7 +106,7 @@ function closeLeaveModal() {
   document.getElementById('leaveModal').classList.add('hidden');
 }
 
-function saveLeave() {
+async function saveLeave() {
   const driver   = document.getElementById('leaveDriverSelect').value.trim();
   const fromDate = document.getElementById('leaveFromDate').value;
   const toDate   = document.getElementById('leaveToDate').value;
@@ -119,35 +119,35 @@ function saveLeave() {
   if (!toDate)   { errEl.textContent = _t.adm_leave_err_to; return; }
   if (toDate < fromDate) { errEl.textContent = _t.adm_leave_err_date_order; return; }
 
-  const leaves = getLeaves();
-  const entry  = { id: Date.now().toString(), driver, fromDate, toDate, reason };
+  const body = { driver, fromDate, toDate, reason };
 
   if (_editingLeaveIndex === null) {
-    leaves.push(entry);
+    await fetch('/api/leaves', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
     writeLog('adm_log_leave_added', `${driver}: ${fromDate} → ${toDate}`);
   } else {
-    entry.id = leaves[_editingLeaveIndex].id || entry.id;
-    leaves[_editingLeaveIndex] = entry;
+    const leaveId = _leavesCache[_editingLeaveIndex]?.id;
+    await fetch(`/api/leaves/${leaveId}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
     writeLog('adm_log_leave_updated', `${driver}: ${fromDate} → ${toDate}`);
   }
 
-  saveLeaves(leaves);
   closeLeaveModal();
-  renderLeaves();
+  await renderLeaves();
   /* refresh bookings table so on-leave drivers appear greyed out */
   renderBookings(document.getElementById('searchInput').value);
 }
 
-function deleteLeave(index) {
-  const leaves = getLeaves();
-  const l = leaves[index];
+async function deleteLeave(index) {
+  const l = _leavesCache[index];
   if (!l) return;
   const _t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en);
   if (!confirm(_t.adm_leave_remove_confirm.replace('{driver}', l.driver).replace('{from}', l.fromDate).replace('{to}', l.toDate))) return;
   writeLog('adm_log_leave_removed', `${l.driver}: ${l.fromDate} → ${l.toDate}`);
-  leaves.splice(index, 1);
-  saveLeaves(leaves);
-  renderLeaves();
+  await fetch(`/api/leaves/${l.id}`, { method: 'DELETE' });
+  await renderLeaves();
   renderBookings(document.getElementById('searchInput').value);
 }
 
@@ -355,6 +355,7 @@ async function renderBookings(filter = '') {
   });
 
   const drivers = await getDrivers();
+  await getLeaves(); /* refresh _leavesCache so isDriverOnLeave() is current */
 
   /* ── group by tripDate ── */
   const groupMap = {};

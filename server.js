@@ -44,7 +44,7 @@ app.use(express.static(__dirname));
 const USE_MONGO = !!process.env.MONGODB_URI;
 
 /* ── MongoDB setup ── */
-let Booking, Driver;
+let Booking, Driver, Leave;
 
 if (USE_MONGO) {
   const mongoose = require('mongoose');
@@ -73,20 +73,31 @@ if (USE_MONGO) {
     phone: { type: String, default: '' },
   }, { versionKey: false });
 
+  const leaveSchema = new mongoose.Schema({
+    id:       { type: String, required: true, unique: true },
+    driver:   { type: String, required: true },
+    fromDate: { type: String, required: true },
+    toDate:   { type: String, required: true },
+    reason:   { type: String, default: '' },
+  }, { versionKey: false });
+
   Booking = mongoose.model('Booking', bookingSchema);
   Driver  = mongoose.model('Driver',  driverSchema);
+  Leave   = mongoose.model('Leave',   leaveSchema);
 }
 
 /* ── JSON-file setup (local dev fallback) ── */
 const DB_DIR        = path.join(__dirname, 'db');
 const BOOKINGS_FILE = path.join(DB_DIR, 'bookings.json');
 const DRIVERS_FILE  = path.join(DB_DIR, 'drivers.json');
+const LEAVES_FILE   = path.join(DB_DIR, 'leaves.json');
 
 if (!USE_MONGO) {
   if (!fs.existsSync(DB_DIR))        fs.mkdirSync(DB_DIR, { recursive: true });
   if (!fs.existsSync(BOOKINGS_FILE)) fs.writeFileSync(BOOKINGS_FILE, '[]', 'utf8');
   if (!fs.existsSync(DRIVERS_FILE))  fs.writeFileSync(DRIVERS_FILE,
     '["Pradip","Swapan","Ujjal","Totah","Samir"]', 'utf8');
+  if (!fs.existsSync(LEAVES_FILE))   fs.writeFileSync(LEAVES_FILE, '[]', 'utf8');
 }
 
 function readJSON(filePath)      { try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); } catch { return []; } }
@@ -321,6 +332,80 @@ app.delete('/api/drivers/:index', async (req, res) => {
     drivers.splice(idx, 1);
     writeJSON(DRIVERS_FILE, drivers);
     res.json(drivers);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* ============================================================
+   LEAVES  /api/leaves
+   ============================================================ */
+
+/* GET — list all */
+app.get('/api/leaves', async (req, res) => {
+  try {
+    if (USE_MONGO) {
+      const docs = await Leave.find().lean();
+      return res.json(docs.map(({ id, driver, fromDate, toDate, reason }) => ({ id, driver, fromDate, toDate, reason })));
+    }
+    res.json(readJSON(LEAVES_FILE));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* POST — add */
+app.post('/api/leaves', async (req, res) => {
+  const { driver, fromDate, toDate, reason } = req.body;
+  if (!driver || !fromDate || !toDate)
+    return res.status(400).json({ error: 'driver, fromDate and toDate are required' });
+  const entry = { id: Date.now().toString(), driver, fromDate, toDate, reason: reason || '' };
+  try {
+    if (USE_MONGO) {
+      await Leave.create(entry);
+      const all = await Leave.find().lean();
+      return res.status(201).json(all.map(({ id, driver, fromDate, toDate, reason }) => ({ id, driver, fromDate, toDate, reason })));
+    }
+    const all = readJSON(LEAVES_FILE);
+    all.push(entry);
+    writeJSON(LEAVES_FILE, all);
+    res.status(201).json(all);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* PATCH — update by id */
+app.patch('/api/leaves/:id', async (req, res) => {
+  const { driver, fromDate, toDate, reason } = req.body;
+  try {
+    if (USE_MONGO) {
+      const doc = await Leave.findOneAndUpdate(
+        { id: req.params.id },
+        { $set: { driver, fromDate, toDate, reason: reason || '' } },
+        { new: true, lean: true }
+      );
+      if (!doc) return res.status(404).json({ error: 'Not found' });
+      const all = await Leave.find().lean();
+      return res.json(all.map(({ id, driver, fromDate, toDate, reason }) => ({ id, driver, fromDate, toDate, reason })));
+    }
+    const all = readJSON(LEAVES_FILE);
+    const idx = all.findIndex(l => l.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+    all[idx] = { ...all[idx], driver, fromDate, toDate, reason: reason || '' };
+    writeJSON(LEAVES_FILE, all);
+    res.json(all);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* DELETE — by id */
+app.delete('/api/leaves/:id', async (req, res) => {
+  try {
+    if (USE_MONGO) {
+      const r = await Leave.deleteOne({ id: req.params.id });
+      if (!r.deletedCount) return res.status(404).json({ error: 'Not found' });
+      const all = await Leave.find().lean();
+      return res.json(all.map(({ id, driver, fromDate, toDate, reason }) => ({ id, driver, fromDate, toDate, reason })));
+    }
+    const all = readJSON(LEAVES_FILE);
+    const next = all.filter(l => l.id !== req.params.id);
+    if (next.length === all.length) return res.status(404).json({ error: 'Not found' });
+    writeJSON(LEAVES_FILE, next);
+    res.json(next);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
