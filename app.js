@@ -15,7 +15,7 @@
 const TRANSLATIONS = {
   en: {
     nav_book:       'Book a Driver',
-    nav_admin:      'Admin',
+    nav_admin:      'Diary',
     hero_badge:     '🚗 Fast & Reliable',
     hero_title:     'Your Personal Driver,<br/>On Demand',
     hero_sub:       'Book a professional driver in seconds. Safe, punctual, and always smiling.',
@@ -244,7 +244,7 @@ const TRANSLATIONS = {
   },
   bn: {
     nav_book:       'ড্রাইভার বুক করুন',
-    nav_admin:      'অ্যাডমিন',
+    nav_admin:      'ডায়েরি',
     hero_badge:     '🚗 দ্রুত ও নির্ভরযোগ্য',
     hero_title:     'আপনার ব্যক্তিগত ড্রাইভার,<br/>চাহিদামতো',
     hero_sub:       'মাত্র কয়েক সেকেন্ডে একজন পেশাদার ড্রাইভার বুক করুন। নিরাপদ, সময়মতো এবং সর্বদা হাসিমাখা।',

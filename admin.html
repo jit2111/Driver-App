@@ -36,7 +36,7 @@
       <p class="login-sub" data-i18n="adm_login_sub">Enter your PIN to access the dashboard</p>
       <div class="form-group">
         <label for="adminPin" data-i18n="adm_pin_lbl">Admin PIN</label>
-        <input type="password" id="adminPin" placeholder="••••" class="pin-input" />
+        <input type="password" id="adminPin" placeholder="Boss DDMMYYYY" class="pin-input" />
         <span class="field-error" id="err-adminPin"></span>
       </div>
       <button class="btn btn-primary btn-full" style="margin-top:20px;" data-i18n="adm_login_btn" onclick="adminLogin()">
@@ -454,7 +454,12 @@
     function adminLogin() {
       const pin = document.getElementById('adminPin').value.trim();
       const err = document.getElementById('err-adminPin');
-      if (pin === '100') {
+      const now = new Date();
+      const dd   = String(now.getDate()).padStart(2, '0');
+      const mm   = String(now.getMonth() + 1).padStart(2, '0');
+      const yyyy = now.getFullYear();
+      const todayPassword = 'Boss' + dd + mm + yyyy;
+      if (pin === todayPassword) {
         document.getElementById('adminLoginScreen').style.display = 'none';
         document.getElementById('adminMain').style.display = '';
         renderDriverChips();
